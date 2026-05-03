@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { GraduationCap, Mail, Lock, Loader2 } from "lucide-react";
+import { GraduationCap, Mail, Lock, Loader2, RefreshCw } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -15,11 +15,16 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isResending, setIsResending] = useState(false);
+  const [resendSuccess, setResendSuccess] = useState(false);
+  const [isEmailNotConfirmed, setIsEmailNotConfirmed] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setIsLoading(true);
+    setIsEmailNotConfirmed(false);
+    setResendSuccess(false);
 
     const supabase = createClient();
     const { error } = await supabase.auth.signInWithPassword({
@@ -28,6 +33,9 @@ export default function LoginPage() {
     });
 
     if (error) {
+      if (error.message.toLowerCase().includes("email not confirmed")) {
+        setIsEmailNotConfirmed(true);
+      }
       setError(error.message);
       setIsLoading(false);
       return;
@@ -35,6 +43,35 @@ export default function LoginPage() {
 
     router.push("/");
     router.refresh();
+  };
+
+  const handleResendConfirmation = async () => {
+    if (!email) {
+      setError("Please enter your email address first");
+      return;
+    }
+
+    setIsResending(true);
+    setError("");
+
+    const supabase = createClient();
+    const { error } = await supabase.auth.resend({
+      type: "signup",
+      email,
+      options: {
+        emailRedirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL ?? 
+          `${window.location.origin}/auth/callback`,
+      },
+    });
+
+    setIsResending(false);
+
+    if (error) {
+      setError(error.message);
+      return;
+    }
+
+    setResendSuccess(true);
   };
 
   return (
@@ -55,9 +92,20 @@ export default function LoginPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
-            {error && (
+            {error && !resendSuccess && (
               <div className="rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-3 text-sm text-red-600 dark:text-red-400">
-                {error}
+                <p>{error}</p>
+                {isEmailNotConfirmed && (
+                  <p className="mt-2 text-gray-600 dark:text-gray-400">
+                    Please check your email inbox and click the confirmation link, or resend the confirmation email below.
+                  </p>
+                )}
+              </div>
+            )}
+
+            {resendSuccess && (
+              <div className="rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 p-3 text-sm text-green-600 dark:text-green-400">
+                Confirmation email sent! Please check your inbox and click the link to verify your account.
               </div>
             )}
 
@@ -109,6 +157,28 @@ export default function LoginPage() {
                 "Sign In"
               )}
             </Button>
+
+            {isEmailNotConfirmed && (
+              <Button
+                type="button"
+                variant="outline"
+                disabled={isResending}
+                onClick={handleResendConfirmation}
+                className="w-full border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+              >
+                {isResending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Sending...
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                    Resend Confirmation Email
+                  </>
+                )}
+              </Button>
+            )}
 
             <p className="text-center text-sm text-gray-500 dark:text-gray-400">
               Don&apos;t have an account?{" "}
