@@ -97,6 +97,37 @@ export interface TestResult {
   }[];
 }
 
+// Study Plan Types
+export interface StudyBlock {
+  id: string;
+  timeSlot: "morning" | "afternoon" | "evening";
+  duration: number; // in minutes
+  topic: string;
+  subject: string;
+  task: "practice" | "revise" | "test";
+  status: "pending" | "in-progress" | "completed";
+  priority: "high" | "medium" | "low";
+}
+
+export interface DailyStudyPlan {
+  date: string;
+  blocks: StudyBlock[];
+  totalMinutes: number;
+  completedMinutes: number;
+}
+
+// Action Item Types
+export interface ActionItem {
+  id: string;
+  title: string;
+  description: string;
+  type: "practice" | "revise" | "test" | "sync";
+  topic?: string;
+  subject?: string;
+  priority: "high" | "medium" | "low";
+  estimatedTime: number; // in minutes
+}
+
 // LeetCode Profile
 export interface LeetCodeProfile {
   username: string;

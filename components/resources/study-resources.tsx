@@ -19,6 +19,7 @@ import type { TopicResources, StudyResource } from "@/lib/types";
 
 interface StudyResourcesProps {
   recommendedTopic?: string;
+  preSelectedSubject?: string;
 }
 
 const platformIcons: Record<string, React.ReactNode> = {
@@ -43,9 +44,9 @@ const typeColors: Record<string, string> = {
   practice: "border-chart-1/30 text-chart-1",
 };
 
-export function StudyResources({ recommendedTopic }: StudyResourcesProps) {
+export function StudyResources({ recommendedTopic, preSelectedSubject }: StudyResourcesProps) {
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedSubject, setSelectedSubject] = useState("all");
+  const [selectedSubject, setSelectedSubject] = useState(preSelectedSubject || "all");
 
   const subjects = ["all", ...new Set(studyResources.map((r) => r.subject))];
 

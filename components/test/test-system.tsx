@@ -30,13 +30,23 @@ import type { Question, TestResult } from "@/lib/types";
 
 interface TestSystemProps {
   onTestComplete?: (result: TestResult) => void;
+  preSelectedTopic?: string;
 }
 
 type TestState = "setup" | "running" | "completed";
 
-export function TestSystem({ onTestComplete }: TestSystemProps) {
+export function TestSystem({ onTestComplete, preSelectedTopic }: TestSystemProps) {
   const [testState, setTestState] = useState<TestState>("setup");
-  const [selectedSubject, setSelectedSubject] = useState<string>("all");
+  
+  // Find subject for pre-selected topic
+  const getSubjectForTopic = (topic: string): string => {
+    const question = questionBank.find(q => q.topic === topic);
+    return question?.subject || "all";
+  };
+  
+  const [selectedSubject, setSelectedSubject] = useState<string>(() => 
+    preSelectedTopic ? getSubjectForTopic(preSelectedTopic) : "all"
+  );
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>("all");
   const [questionCount, setQuestionCount] = useState<number>(5);
   const [currentQuestions, setCurrentQuestions] = useState<Question[]>([]);

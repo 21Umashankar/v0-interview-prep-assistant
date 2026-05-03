@@ -4,17 +4,16 @@ import { useState, useCallback } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { StatsCards } from "@/components/dashboard/stats-cards";
-import { ProgressOverview } from "@/components/dashboard/progress-overview";
-import { WeakAreas } from "@/components/dashboard/weak-areas";
-import { TopicBreakdown } from "@/components/dashboard/topic-breakdown";
+import { StudyPlanTimeline } from "@/components/dashboard/study-plan-timeline";
+import { PerformanceAnalytics } from "@/components/dashboard/performance-analytics";
+import { InteractiveActions } from "@/components/dashboard/interactive-actions";
 import { CompanySelector } from "@/components/dashboard/company-selector";
-import { QuickActions } from "@/components/dashboard/quick-actions";
 import { ChatInterface } from "@/components/chat/chat-interface";
 import { TestSystem } from "@/components/test/test-system";
 import { ProfileSync } from "@/components/profile/profile-sync";
 import { StudyResources } from "@/components/resources/study-resources";
 import { userProfile as initialProfile } from "@/lib/data";
-import type { UserProfile, TestResult, LeetCodeProfile } from "@/lib/types";
+import type { UserProfile, TestResult, LeetCodeProfile, StudyBlock } from "@/lib/types";
 import {
   LayoutDashboard,
   MessageSquare,
@@ -23,15 +22,19 @@ import {
   Target,
   RefreshCw,
   BookOpen,
+  BarChart3,
+  Sparkles,
 } from "lucide-react";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState("dashboard");
+  const [dashboardView, setDashboardView] = useState<"overview" | "analytics" | "actions">("overview");
   const [userProfile, setUserProfile] = useState<UserProfile>(initialProfile);
   const [selectedCompany, setSelectedCompany] = useState<string | null>(
     userProfile.targetCompany
   );
   const [recommendedTopic, setRecommendedTopic] = useState<string | undefined>();
+  const [selectedSubject, setSelectedSubject] = useState<string | undefined>();
 
   // Handle test completion - update progress
   const handleTestComplete = useCallback((result: TestResult) => {
@@ -133,16 +136,56 @@ export default function Home() {
     });
   }, []);
 
-  // Quick action handlers
-  const handleStudyTopic = () => setActiveTab("resources");
-  const handleTakeTest = () => setActiveTab("test");
-  const handleSyncProfile = () => setActiveTab("profile");
-  const handleAskAI = () => setActiveTab("chat");
+  // Navigation handlers for interactive actions
+  const handlePractice = useCallback((topic: string, subject: string) => {
+    setRecommendedTopic(topic);
+    setSelectedSubject(subject);
+    setActiveTab("resources");
+  }, []);
+
+  const handleRevise = useCallback((topic: string, subject: string) => {
+    setRecommendedTopic(topic);
+    setSelectedSubject(subject);
+    setActiveTab("resources");
+  }, []);
+
+  const handleTest = useCallback((topic?: string) => {
+    if (topic) {
+      setRecommendedTopic(topic);
+    }
+    setActiveTab("test");
+  }, []);
+
+  const handleSyncProfile = useCallback(() => {
+    setActiveTab("profile");
+  }, []);
+
+  // Study plan timeline handlers
+  const handleStartBlock = useCallback((block: StudyBlock) => {
+    // Navigate based on task type
+    if (block.task === "practice") {
+      handlePractice(block.topic, block.subject);
+    } else if (block.task === "revise") {
+      handleRevise(block.topic, block.subject);
+    } else if (block.task === "test") {
+      handleTest(block.topic);
+    }
+  }, [handlePractice, handleRevise, handleTest]);
+
+  const handleNavigateToTopic = useCallback((topic: string, action: "practice" | "revise" | "test") => {
+    if (action === "practice" || action === "revise") {
+      setRecommendedTopic(topic);
+      setActiveTab("resources");
+    } else {
+      setRecommendedTopic(topic);
+      setActiveTab("test");
+    }
+  }, []);
 
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b border-border bg-card/50 backdrop-blur-sm">
+      <header className="sticky top-0 z-50 border-b border-border bg-card/80 backdrop-blur-md">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3">
             <div className="rounded-lg bg-primary p-2">
@@ -219,44 +262,95 @@ export default function Home() {
 
           {/* Dashboard Tab */}
           <TabsContent value="dashboard" className="space-y-6">
-            {/* Quick Actions */}
-            <QuickActions
-              onStudyTopic={handleStudyTopic}
-              onTakeTest={handleTakeTest}
-              onSyncProfile={handleSyncProfile}
-              onAskAI={handleAskAI}
-            />
+            {/* Dashboard Sub-navigation */}
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                onClick={() => setDashboardView("overview")}
+                className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all ${
+                  dashboardView === "overview"
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-secondary text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <Sparkles className="h-4 w-4" />
+                Study Plan
+              </button>
+              <button
+                onClick={() => setDashboardView("analytics")}
+                className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all ${
+                  dashboardView === "analytics"
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-secondary text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <BarChart3 className="h-4 w-4" />
+                Analytics
+              </button>
+              <button
+                onClick={() => setDashboardView("actions")}
+                className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all ${
+                  dashboardView === "actions"
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-secondary text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <Zap className="h-4 w-4" />
+                Actions
+              </button>
+            </div>
 
-            {/* Stats Overview */}
+            {/* Stats Overview - Always visible */}
             <StatsCards userProfile={userProfile} />
 
-            {/* Main Grid */}
-            <div className="grid gap-6 lg:grid-cols-3">
-              {/* Left Column - Progress */}
-              <div className="space-y-6 lg:col-span-2">
-                <ProgressOverview userProfile={userProfile} />
-                <TopicBreakdown userProfile={userProfile} />
+            {/* Dynamic Dashboard Content */}
+            {dashboardView === "overview" && (
+              <div className="grid gap-6 lg:grid-cols-3">
+                <div className="lg:col-span-2">
+                  <StudyPlanTimeline
+                    userProfile={userProfile}
+                    availableHours={2}
+                    onStartBlock={handleStartBlock}
+                    onNavigateToTopic={handleNavigateToTopic}
+                  />
+                </div>
+                <div>
+                  <CompanySelector
+                    selectedCompany={selectedCompany}
+                    onSelectCompany={setSelectedCompany}
+                  />
+                </div>
               </div>
+            )}
 
-              {/* Right Column - Weak Areas & Companies */}
-              <div className="space-y-6">
-                <WeakAreas userProfile={userProfile} />
-                <CompanySelector
-                  selectedCompany={selectedCompany}
-                  onSelectCompany={setSelectedCompany}
-                />
-              </div>
-            </div>
+            {dashboardView === "analytics" && (
+              <PerformanceAnalytics userProfile={userProfile} />
+            )}
+
+            {dashboardView === "actions" && (
+              <InteractiveActions
+                userProfile={userProfile}
+                onPractice={handlePractice}
+                onRevise={handleRevise}
+                onTest={handleTest}
+                onSyncProfile={handleSyncProfile}
+              />
+            )}
           </TabsContent>
 
           {/* Test Tab */}
           <TabsContent value="test">
-            <TestSystem onTestComplete={handleTestComplete} />
+            <TestSystem 
+              onTestComplete={handleTestComplete}
+              preSelectedTopic={recommendedTopic}
+            />
           </TabsContent>
 
           {/* Resources Tab */}
           <TabsContent value="resources">
-            <StudyResources recommendedTopic={recommendedTopic} />
+            <StudyResources 
+              recommendedTopic={recommendedTopic}
+              preSelectedSubject={selectedSubject}
+            />
           </TabsContent>
 
           {/* Profile Tab */}
