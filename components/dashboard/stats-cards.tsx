@@ -9,11 +9,6 @@ interface StatsCardsProps {
 }
 
 export function StatsCards({ userProfile }: StatsCardsProps) {
-  const totalTopics = userProfile.subjects.reduce(
-    (acc, subject) => acc + subject.topics.length,
-    0
-  );
-
   const avgProgress = Math.round(
     userProfile.subjects.reduce((acc, s) => acc + s.overallProgress, 0) /
       userProfile.subjects.length
@@ -29,47 +24,48 @@ export function StatsCards({ userProfile }: StatsCardsProps) {
       label: "Study Streak",
       value: `${userProfile.studyStreak} days`,
       icon: Flame,
-      color: "text-orange-400",
-      bgColor: "bg-orange-400/10",
+      iconColor: "text-warning",
+      borderColor: "border-l-warning",
     },
     {
       label: "Problems Solved",
       value: userProfile.totalProblems.toString(),
       icon: Trophy,
-      color: "text-primary",
-      bgColor: "bg-primary/10",
+      iconColor: "text-primary",
+      borderColor: "border-l-primary",
     },
     {
       label: "Overall Progress",
       value: `${avgProgress}%`,
       icon: TrendingUp,
-      color: "text-blue-400",
-      bgColor: "bg-blue-400/10",
+      iconColor: "text-chart-2",
+      borderColor: "border-l-chart-2",
     },
     {
       label: "Avg Accuracy",
       value: `${avgAccuracy}%`,
       icon: Target,
-      color: "text-emerald-400",
-      bgColor: "bg-emerald-400/10",
+      iconColor: "text-success",
+      borderColor: "border-l-success",
     },
   ];
 
   return (
     <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
       {stats.map((stat) => (
-        <Card key={stat.label} className="border-border bg-card">
+        <Card
+          key={stat.label}
+          className={`border border-border bg-card shadow-sm transition-shadow hover:shadow-md ${stat.borderColor} border-l-2`}
+        >
           <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className={`rounded-lg p-2 ${stat.bgColor}`}>
-                <stat.icon className={`h-5 w-5 ${stat.color}`} />
-              </div>
+            <div className="flex items-start justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">{stat.label}</p>
-                <p className="text-xl font-semibold text-foreground">
+                <p className="mt-1 text-2xl font-semibold text-foreground">
                   {stat.value}
                 </p>
               </div>
+              <stat.icon className={`h-5 w-5 ${stat.iconColor}`} />
             </div>
           </CardContent>
         </Card>

@@ -11,20 +11,20 @@ import { ChatInterface } from "@/components/chat/chat-interface";
 import { TestSystem } from "@/components/test/test-system";
 import { ProfileSync } from "@/components/profile/profile-sync";
 import { StudyResources } from "@/components/resources/study-resources";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { userProfile as initialProfile } from "@/lib/data";
 import type { UserProfile, TestResult, LeetCodeProfile, StudyBlock } from "@/lib/types";
 import {
   LayoutDashboard,
   MessageSquare,
-  GraduationCap,
-  Zap,
   Target,
   RefreshCw,
   BookOpen,
   BarChart3,
   Sparkles,
+  GraduationCap,
+  Bot,
 } from "lucide-react";
-// Note: Zap is kept for the "4 Active Agents" badge in the header
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -42,15 +42,12 @@ export default function Home() {
       const updated = { ...prev };
       updated.totalProblems += result.totalQuestions;
       
-      // Update topic-wise progress based on test results
       result.topics.forEach((topicName) => {
         updated.subjects.forEach((subject) => {
           const topic = subject.topics.find((t) => t.topic === topicName);
           if (topic) {
-            // Update practice count
             topic.practiceCount += result.totalQuestions / result.topics.length;
             
-            // Update accuracy with weighted average
             const oldWeight = topic.practiceCount - result.totalQuestions / result.topics.length;
             const newWeight = result.totalQuestions / result.topics.length;
             topic.accuracy = Math.round(
@@ -58,10 +55,8 @@ export default function Home() {
               (oldWeight + newWeight)
             );
             
-            // Update progress
             topic.progress = Math.min(100, topic.progress + Math.round(result.accuracy / 10));
             
-            // Update status based on accuracy
             if (topic.accuracy >= 75) {
               topic.status = "strong";
             } else if (topic.accuracy >= 50) {
@@ -74,7 +69,6 @@ export default function Home() {
           }
         });
         
-        // Recalculate subject overall progress and accuracy
         updated.subjects.forEach((subject) => {
           const topicsInSubject = subject.topics.length;
           subject.overallProgress = Math.round(
@@ -89,7 +83,6 @@ export default function Home() {
       return updated;
     });
     
-    // Find weak topic to recommend for study
     const weakTopics = result.answers
       .filter((a) => !a.isCorrect)
       .map((a) => {
@@ -111,7 +104,6 @@ export default function Home() {
       const updated = { ...prev };
       updated.totalProblems = profile.totalSolved;
       
-      // Update DSA topics based on LeetCode progress
       const dsaSubject = updated.subjects.find((s) => s.name === "DSA");
       if (dsaSubject) {
         profile.topicWiseProgress.forEach((lcTopic) => {
@@ -126,7 +118,6 @@ export default function Home() {
           }
         });
         
-        // Recalculate DSA overall progress
         dsaSubject.overallProgress = Math.round(
           dsaSubject.topics.reduce((sum, t) => sum + t.progress, 0) / dsaSubject.topics.length
         );
@@ -136,7 +127,7 @@ export default function Home() {
     });
   }, []);
 
-  // Navigation handlers for interactive actions
+  // Navigation handlers
   const handlePractice = useCallback((topic: string, subject: string) => {
     setRecommendedTopic(topic);
     setSelectedSubject(subject);
@@ -160,9 +151,8 @@ export default function Home() {
     setActiveTab("profile");
   }, []);
 
-  // Study plan timeline handlers
+  // Study plan handlers
   const handleStartBlock = useCallback((block: StudyBlock) => {
-    // Navigate based on task type
     if (block.task === "practice") {
       handlePractice(block.topic, block.subject);
     } else if (block.task === "revise") {
@@ -185,29 +175,32 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="sticky top-0 z-50 border-b border-border bg-card/80 backdrop-blur-md">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
+      <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur-sm">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3">
-            <div className="rounded-lg bg-primary p-2">
-              <GraduationCap className="h-6 w-6 text-primary-foreground" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
+              <GraduationCap className="h-5 w-5 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-foreground">PrepAI</h1>
-              <p className="text-xs text-muted-foreground">
-                Multi-Agent Interview System
+              <h1 className="text-lg font-semibold text-foreground">PrepAI</h1>
+              <p className="hidden text-xs text-muted-foreground sm:block">
+                Interview Preparation
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-4">
+          
+          <div className="flex items-center gap-3">
             <Badge
-              variant="outline"
-              className="hidden border-primary/30 text-primary sm:flex"
+              variant="secondary"
+              className="hidden gap-1.5 border border-border bg-background font-normal sm:flex"
             >
-              <Zap className="mr-1 h-3 w-3" />4 Active Agents
+              <Bot className="h-3 w-3 text-primary" />
+              <span className="text-muted-foreground">4 AI Agents</span>
             </Badge>
-            <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/20">
-                <span className="text-sm font-medium text-primary">
+            <ThemeToggle />
+            <div className="flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-1.5">
+              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10">
+                <span className="text-xs font-medium text-primary">
                   {userProfile.name.charAt(0)}
                 </span>
               </div>
@@ -222,40 +215,40 @@ export default function Home() {
       {/* Main Content */}
       <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5 bg-secondary lg:w-auto lg:inline-grid">
+          <TabsList className="inline-flex h-10 w-full justify-start gap-1 rounded-lg border border-border bg-background p-1 sm:w-auto">
             <TabsTrigger
               value="dashboard"
-              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+              className="gap-2 rounded-md px-3 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
             >
-              <LayoutDashboard className="mr-2 h-4 w-4" />
+              <LayoutDashboard className="h-4 w-4" />
               <span className="hidden sm:inline">Dashboard</span>
             </TabsTrigger>
             <TabsTrigger
               value="test"
-              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+              className="gap-2 rounded-md px-3 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
             >
-              <Target className="mr-2 h-4 w-4" />
+              <Target className="h-4 w-4" />
               <span className="hidden sm:inline">Test</span>
             </TabsTrigger>
             <TabsTrigger
               value="resources"
-              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+              className="gap-2 rounded-md px-3 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
             >
-              <BookOpen className="mr-2 h-4 w-4" />
+              <BookOpen className="h-4 w-4" />
               <span className="hidden sm:inline">Resources</span>
             </TabsTrigger>
             <TabsTrigger
               value="profile"
-              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+              className="gap-2 rounded-md px-3 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
             >
-              <RefreshCw className="mr-2 h-4 w-4" />
+              <RefreshCw className="h-4 w-4" />
               <span className="hidden sm:inline">Profile</span>
             </TabsTrigger>
             <TabsTrigger
               value="chat"
-              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+              className="gap-2 rounded-md px-3 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
             >
-              <MessageSquare className="mr-2 h-4 w-4" />
+              <MessageSquare className="h-4 w-4" />
               <span className="hidden sm:inline">AI Chat</span>
             </TabsTrigger>
           </TabsList>
@@ -263,13 +256,13 @@ export default function Home() {
           {/* Dashboard Tab */}
           <TabsContent value="dashboard" className="space-y-6">
             {/* Dashboard Sub-navigation */}
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex items-center gap-2">
               <button
                 onClick={() => setDashboardView("overview")}
-                className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all ${
+                className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
                   dashboardView === "overview"
                     ? "bg-primary text-primary-foreground"
-                    : "bg-secondary text-muted-foreground hover:text-foreground"
+                    : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
                 }`}
               >
                 <Sparkles className="h-4 w-4" />
@@ -277,10 +270,10 @@ export default function Home() {
               </button>
               <button
                 onClick={() => setDashboardView("analytics")}
-                className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all ${
+                className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
                   dashboardView === "analytics"
                     ? "bg-primary text-primary-foreground"
-                    : "bg-secondary text-muted-foreground hover:text-foreground"
+                    : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
                 }`}
               >
                 <BarChart3 className="h-4 w-4" />
@@ -288,7 +281,7 @@ export default function Home() {
               </button>
             </div>
 
-            {/* Stats Overview - Always visible */}
+            {/* Stats Overview */}
             <StatsCards userProfile={userProfile} />
 
             {/* Dynamic Dashboard Content */}

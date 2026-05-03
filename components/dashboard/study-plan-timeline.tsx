@@ -33,25 +33,16 @@ const timeSlotConfig = {
     icon: Sun,
     label: "Morning",
     time: "9:00 AM - 10:00 AM",
-    color: "text-amber-400",
-    bgColor: "bg-amber-400/10",
-    borderColor: "border-amber-400/30",
   },
   afternoon: {
     icon: Sunset,
     label: "Afternoon",
     time: "2:00 PM - 2:45 PM",
-    color: "text-orange-400",
-    bgColor: "bg-orange-400/10",
-    borderColor: "border-orange-400/30",
   },
   evening: {
     icon: Moon,
     label: "Evening",
     time: "7:00 PM - 7:30 PM",
-    color: "text-indigo-400",
-    bgColor: "bg-indigo-400/10",
-    borderColor: "border-indigo-400/30",
   },
 };
 
@@ -59,20 +50,14 @@ const taskConfig = {
   practice: {
     icon: Target,
     label: "Practice",
-    color: "text-primary",
-    bgColor: "bg-primary/10",
   },
   revise: {
     icon: BookOpen,
     label: "Revise",
-    color: "text-chart-2",
-    bgColor: "bg-chart-2/10",
   },
   test: {
     icon: RotateCcw,
     label: "Test",
-    color: "text-chart-3",
-    bgColor: "bg-chart-3/10",
   },
 };
 
@@ -84,7 +69,6 @@ function generateStudyPlan(
   const weakTopics: { topic: string; subject: string; accuracy: number }[] = [];
   const moderateTopics: { topic: string; subject: string }[] = [];
 
-  // Collect weak and moderate topics
   userProfile.subjects.forEach((subject) => {
     subject.topics.forEach((topic) => {
       if (topic.status === "weak") {
@@ -102,16 +86,13 @@ function generateStudyPlan(
     });
   });
 
-  // Sort weak topics by accuracy (lowest first)
   weakTopics.sort((a, b) => a.accuracy - b.accuracy);
 
-  // Calculate time distribution based on available hours
   const totalMinutes = availableHours * 60;
-  const morningMinutes = Math.round(totalMinutes * 0.45); // 45% morning
-  const afternoonMinutes = Math.round(totalMinutes * 0.35); // 35% afternoon
-  const eveningMinutes = totalMinutes - morningMinutes - afternoonMinutes; // remaining evening
+  const morningMinutes = Math.round(totalMinutes * 0.45);
+  const afternoonMinutes = Math.round(totalMinutes * 0.35);
+  const eveningMinutes = totalMinutes - morningMinutes - afternoonMinutes;
 
-  // Morning: Focus on weakest topics (Practice)
   if (weakTopics.length > 0) {
     blocks.push({
       id: "morning-1",
@@ -136,7 +117,6 @@ function generateStudyPlan(
     });
   }
 
-  // Afternoon: Revise second weakest or moderate topics
   const afternoonTopic =
     weakTopics.length > 1 ? weakTopics[1] : moderateTopics[0];
   if (afternoonTopic) {
@@ -152,7 +132,6 @@ function generateStudyPlan(
     });
   }
 
-  // Evening: Quick test or aptitude practice
   const eveningTopic =
     weakTopics.length > 2
       ? weakTopics[2]
@@ -242,19 +221,19 @@ export function StudyPlanTimeline({
   };
 
   return (
-    <Card className="border-border bg-card">
+    <Card className="border border-border bg-card shadow-sm">
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="rounded-lg bg-primary/10 p-2">
-              <Sparkles className="h-5 w-5 text-primary" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-primary/20 bg-primary/10">
+              <Sparkles className="h-4 w-4 text-primary" />
             </div>
             <div>
-              <CardTitle className="text-lg text-foreground">
+              <CardTitle className="text-base font-semibold text-foreground">
                 Today&apos;s Study Plan
               </CardTitle>
               <p className="text-sm text-muted-foreground">
-                Adaptive plan based on your weak areas
+                Based on your weak areas
               </p>
             </div>
           </div>
@@ -263,10 +242,10 @@ export function StudyPlanTimeline({
             size="sm"
             onClick={handleRegenerate}
             disabled={isGenerating}
-            className="border-border hover:border-primary"
+            className="h-8 gap-1.5 text-xs"
           >
             <RotateCcw
-              className={`mr-2 h-4 w-4 ${isGenerating ? "animate-spin" : ""}`}
+              className={`h-3.5 w-3.5 ${isGenerating ? "animate-spin" : ""}`}
             />
             {isGenerating ? "Generating..." : "Regenerate"}
           </Button>
@@ -277,161 +256,141 @@ export function StudyPlanTimeline({
           <div className="flex items-center justify-between text-sm">
             <span className="text-muted-foreground">Daily Progress</span>
             <span className="font-medium text-foreground">
-              {studyPlan.completedMinutes} / {studyPlan.totalMinutes} min (
-              {progressPercentage}%)
+              {studyPlan.completedMinutes} / {studyPlan.totalMinutes} min
             </span>
           </div>
-          <Progress value={progressPercentage} className="h-2 bg-secondary" />
+          <Progress value={progressPercentage} className="h-1.5" />
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-4">
-        {/* Timeline */}
-        <div className="relative space-y-4">
-          {/* Vertical line connector */}
-          <div className="absolute left-[22px] top-8 h-[calc(100%-4rem)] w-0.5 bg-border" />
+      <CardContent className="space-y-3 pt-0">
+        {studyPlan.blocks.map((block) => {
+          const slotConfig = timeSlotConfig[block.timeSlot];
+          const taskCfg = taskConfig[block.task];
+          const SlotIcon = slotConfig.icon;
+          const TaskIcon = taskCfg.icon;
+          const isCompleted = block.status === "completed";
+          const isInProgress = block.status === "in-progress";
 
-          {studyPlan.blocks.map((block, index) => {
-            const slotConfig = timeSlotConfig[block.timeSlot];
-            const taskCfg = taskConfig[block.task];
-            const SlotIcon = slotConfig.icon;
-            const TaskIcon = taskCfg.icon;
-            const isCompleted = block.status === "completed";
-            const isInProgress = block.status === "in-progress";
-
-            return (
-              <div key={block.id} className="relative flex gap-4">
-                {/* Time indicator */}
-                <div
-                  className={`relative z-10 flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 ${
-                    isCompleted
-                      ? "border-primary bg-primary text-primary-foreground"
-                      : isInProgress
-                        ? `border-primary ${slotConfig.bgColor}`
-                        : `${slotConfig.borderColor} ${slotConfig.bgColor}`
-                  }`}
-                >
-                  {isCompleted ? (
-                    <Check className="h-5 w-5" />
-                  ) : (
-                    <SlotIcon
-                      className={`h-5 w-5 ${isInProgress ? "text-primary" : slotConfig.color}`}
-                    />
-                  )}
-                </div>
-
-                {/* Block content */}
-                <div
-                  className={`flex-1 rounded-lg border p-4 transition-all ${
-                    isCompleted
-                      ? "border-primary/30 bg-primary/5"
-                      : isInProgress
-                        ? "border-primary bg-primary/10"
-                        : "border-border bg-secondary/50 hover:border-primary/50"
-                  }`}
-                >
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <span
-                          className={`font-medium ${
-                            isCompleted
-                              ? "text-muted-foreground line-through"
-                              : "text-foreground"
-                          }`}
-                        >
-                          {slotConfig.label}
-                        </span>
-                        <Badge
-                          variant="outline"
-                          className={`text-xs ${
-                            block.priority === "high"
-                              ? "border-destructive/30 text-destructive"
-                              : block.priority === "medium"
-                                ? "border-chart-3/30 text-chart-3"
-                                : "border-muted-foreground/30 text-muted-foreground"
-                          }`}
-                        >
-                          {block.priority} priority
-                        </Badge>
-                      </div>
-
-                      <div className="mt-2 flex items-center gap-3">
-                        <div
-                          className={`flex items-center gap-1.5 rounded-md px-2 py-1 ${taskCfg.bgColor}`}
-                        >
-                          <TaskIcon className={`h-3.5 w-3.5 ${taskCfg.color}`} />
-                          <span className={`text-xs font-medium ${taskCfg.color}`}>
-                            {taskCfg.label}
-                          </span>
-                        </div>
-                        <span className="text-sm font-medium text-foreground">
-                          {block.topic}
-                        </span>
-                        <span className="text-sm text-muted-foreground">
-                          ({block.subject})
-                        </span>
-                      </div>
-
-                      <div className="mt-2 flex items-center gap-4 text-xs text-muted-foreground">
-                        <span className="flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
-                          {block.duration} min
-                        </span>
-                        <span>{slotConfig.time}</span>
-                      </div>
+          return (
+            <div
+              key={block.id}
+              className={`rounded-lg border p-4 transition-all ${
+                isCompleted
+                  ? "border-success/30 bg-success/5"
+                  : isInProgress
+                    ? "border-primary bg-primary/5"
+                    : "border-border bg-background hover:border-muted-foreground/30"
+              }`}
+            >
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex items-start gap-3">
+                  <div
+                    className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
+                      isCompleted
+                        ? "bg-success text-success-foreground"
+                        : isInProgress
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-secondary text-muted-foreground"
+                    }`}
+                  >
+                    {isCompleted ? (
+                      <Check className="h-4 w-4" />
+                    ) : (
+                      <SlotIcon className="h-4 w-4" />
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`text-sm font-medium ${
+                          isCompleted ? "text-muted-foreground line-through" : "text-foreground"
+                        }`}
+                      >
+                        {slotConfig.label}
+                      </span>
+                      <Badge
+                        variant="outline"
+                        className={`text-[10px] font-normal ${
+                          block.priority === "high"
+                            ? "border-destructive/30 text-destructive"
+                            : block.priority === "medium"
+                              ? "border-warning/30 text-warning"
+                              : "border-muted-foreground/30 text-muted-foreground"
+                        }`}
+                      >
+                        {block.priority}
+                      </Badge>
                     </div>
 
-                    {/* Action buttons */}
-                    <div className="flex gap-2">
-                      {!isCompleted && !isInProgress && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleStartBlock(block)}
-                          className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
-                        >
-                          <Play className="mr-1 h-3 w-3" />
-                          Start
-                        </Button>
-                      )}
-                      {isInProgress && (
-                        <>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleBlockAction(block)}
-                            className="border-border hover:border-primary"
-                          >
-                            Go to {taskCfg.label}
-                            <ChevronRight className="ml-1 h-3 w-3" />
-                          </Button>
-                          <Button
-                            size="sm"
-                            onClick={() => handleCompleteBlock(block.id)}
-                            className="bg-primary text-primary-foreground hover:bg-primary/90"
-                          >
-                            <Check className="mr-1 h-3 w-3" />
-                            Done
-                          </Button>
-                        </>
-                      )}
-                      {isCompleted && (
-                        <Badge
-                          variant="outline"
-                          className="border-primary/30 text-primary"
-                        >
-                          <Check className="mr-1 h-3 w-3" />
-                          Completed
-                        </Badge>
-                      )}
+                    <div className="mt-1.5 flex flex-wrap items-center gap-2">
+                      <Badge variant="secondary" className="gap-1 text-xs font-normal">
+                        <TaskIcon className="h-3 w-3" />
+                        {taskCfg.label}
+                      </Badge>
+                      <span className="text-sm text-foreground">{block.topic}</span>
+                      <span className="text-xs text-muted-foreground">
+                        ({block.subject})
+                      </span>
+                    </div>
+
+                    <div className="mt-2 flex items-center gap-3 text-xs text-muted-foreground">
+                      <span className="flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        {block.duration} min
+                      </span>
+                      <span>{slotConfig.time}</span>
                     </div>
                   </div>
                 </div>
+
+                {/* Action buttons */}
+                <div className="flex shrink-0 gap-2">
+                  {!isCompleted && !isInProgress && (
+                    <Button
+                      size="sm"
+                      onClick={() => handleStartBlock(block)}
+                      className="h-8 gap-1 text-xs"
+                    >
+                      <Play className="h-3 w-3" />
+                      Start
+                    </Button>
+                  )}
+                  {isInProgress && (
+                    <>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleBlockAction(block)}
+                        className="h-8 gap-1 text-xs"
+                      >
+                        {taskCfg.label}
+                        <ChevronRight className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={() => handleCompleteBlock(block.id)}
+                        className="h-8 gap-1 bg-success text-xs text-success-foreground hover:bg-success/90"
+                      >
+                        <Check className="h-3 w-3" />
+                        Done
+                      </Button>
+                    </>
+                  )}
+                  {isCompleted && (
+                    <Badge
+                      variant="outline"
+                      className="border-success/30 text-success"
+                    >
+                      <Check className="mr-1 h-3 w-3" />
+                      Completed
+                    </Badge>
+                  )}
+                </div>
               </div>
-            );
-          })}
-        </div>
+            </div>
+          );
+        })}
       </CardContent>
     </Card>
   );
