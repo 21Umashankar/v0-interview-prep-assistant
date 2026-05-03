@@ -4,7 +4,6 @@ import { useState, useRef, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Send, Bot, User, Sparkles } from "lucide-react";
 import { AgentResponseCard } from "./agent-response";
@@ -35,11 +34,11 @@ export function ChatInterface({
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
     }
   }, [messages]);
 
@@ -80,8 +79,8 @@ export function ChatInterface({
   };
 
   return (
-    <Card className="flex h-full flex-col border-border bg-card">
-      <CardHeader className="border-b border-border pb-4">
+    <Card className="flex h-full flex-col border-border bg-card overflow-hidden">
+      <CardHeader className="shrink-0 border-b border-border pb-4">
         <CardTitle className="flex items-center gap-2 text-lg text-foreground">
           <div className="rounded-lg bg-primary/10 p-1.5">
             <Bot className="h-5 w-5 text-primary" />
@@ -89,8 +88,12 @@ export function ChatInterface({
           AI Interview Assistant
         </CardTitle>
       </CardHeader>
-      <CardContent className="flex flex-1 flex-col p-0">
-        <ScrollArea className="flex-1 p-4" ref={scrollRef}>
+      <CardContent className="flex flex-1 flex-col p-0 min-h-0">
+        {/* Scrollable messages area */}
+        <div 
+          ref={scrollContainerRef}
+          className="flex-1 overflow-y-auto p-4 bg-background"
+        >
           {messages.length === 0 ? (
             <div className="flex h-full flex-col items-center justify-center py-12">
               <div className="rounded-full bg-primary/10 p-4">
@@ -118,9 +121,10 @@ export function ChatInterface({
               </div>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-6">
               {messages.map((message) => (
-                <div key={message.id}>
+                <div key={message.id} className="space-y-4">
+                  {/* Message bubble */}
                   <div
                     className={`flex items-start gap-3 ${
                       message.role === "user" ? "flex-row-reverse" : ""
@@ -161,8 +165,10 @@ export function ChatInterface({
                       </p>
                     </div>
                   </div>
+                  
+                  {/* Agent response cards - stacked vertically for better readability */}
                   {message.agentResponses && (
-                    <div className="mt-4 grid gap-3 pl-11 md:grid-cols-2">
+                    <div className="ml-11 space-y-3">
                       {message.agentResponses.map((response, index) => (
                         <AgentResponseCard
                           key={index}
@@ -177,6 +183,8 @@ export function ChatInterface({
                   )}
                 </div>
               ))}
+              
+              {/* Processing indicator */}
               {isProcessing && (
                 <div className="flex items-start gap-3">
                   <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-secondary text-foreground">
@@ -196,8 +204,10 @@ export function ChatInterface({
               )}
             </div>
           )}
-        </ScrollArea>
-        <div className="border-t border-border p-4">
+        </div>
+        
+        {/* Fixed input area */}
+        <div className="shrink-0 border-t border-border bg-card p-4">
           <form onSubmit={handleSubmit} className="flex gap-2">
             <Input
               value={input}

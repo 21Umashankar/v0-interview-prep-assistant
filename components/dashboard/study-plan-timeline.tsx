@@ -462,9 +462,9 @@ export function StudyPlanTimeline({
               variant="outline"
               size="sm"
               onClick={() => setIsEditing(!isEditing)}
-              className={`h-8 gap-1.5 text-xs ${isEditing ? "bg-primary text-primary-foreground" : ""}`}
+              className={`h-8 gap-1.5 text-xs ${isEditing ? "bg-green-500 text-white hover:bg-green-600 border-green-500" : ""}`}
             >
-              <Pencil className="h-3.5 w-3.5" />
+              {isEditing ? <Check className="h-3.5 w-3.5" /> : <Pencil className="h-3.5 w-3.5" />}
               {isEditing ? "Done" : "Edit"}
             </Button>
             <Button
@@ -637,7 +637,7 @@ export function StudyPlanTimeline({
                           <Button
                             size="sm"
                             onClick={() => handleCompleteBlock(block.id)}
-                            className="h-8 gap-1 bg-primary text-xs text-primary-foreground hover:bg-primary/90"
+                            className="h-8 gap-1 bg-green-500 text-xs text-white hover:bg-green-600"
                           >
                             <Check className="h-3 w-3" />
                             Done
