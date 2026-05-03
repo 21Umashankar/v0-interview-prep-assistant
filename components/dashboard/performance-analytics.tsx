@@ -11,9 +11,6 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
   RadialBarChart,
   RadialBar,
 } from "recharts";
@@ -22,7 +19,6 @@ import {
   TrendingDown,
   Target,
   BarChart3,
-  PieChart as PieChartIcon,
 } from "lucide-react";
 import type { UserProfile } from "@/lib/types";
 
@@ -99,42 +95,6 @@ export function PerformanceAnalytics({ userProfile }: PerformanceAnalyticsProps)
     }));
   }, [userProfile.subjects]);
 
-  const statusDistribution = useMemo(() => {
-    let strong = 0;
-    let moderate = 0;
-    let weak = 0;
-
-    userProfile.subjects.forEach((subject) => {
-      subject.topics.forEach((topic) => {
-        if (topic.status === "strong") strong++;
-        else if (topic.status === "moderate") moderate++;
-        else weak++;
-      });
-    });
-
-    const total = strong + moderate + weak;
-    return [
-      {
-        name: "Strong",
-        value: strong,
-        percentage: Math.round((strong / total) * 100),
-        fill: CHART_COLORS.success,
-      },
-      {
-        name: "Moderate",
-        value: moderate,
-        percentage: Math.round((moderate / total) * 100),
-        fill: CHART_COLORS.warning,
-      },
-      {
-        name: "Weak",
-        value: weak,
-        percentage: Math.round((weak / total) * 100),
-        fill: CHART_COLORS.destructive,
-      },
-    ];
-  }, [userProfile.subjects]);
-
   const overallData = useMemo(() => {
     const totalProgress = userProfile.subjects.reduce(
       (sum, s) => sum + s.overallProgress,
@@ -181,8 +141,8 @@ export function PerformanceAnalytics({ userProfile }: PerformanceAnalyticsProps)
 
   return (
     <div className="space-y-6">
-      {/* Top Row - Key Metrics */}
-      <div className="grid gap-4 md:grid-cols-3">
+      {/* Top Row - Overall Progress and Bar Chart */}
+      <div className="grid gap-6 lg:grid-cols-4">
         {/* Overall Progress Radial */}
         <Card className="border border-border bg-card shadow-sm">
           <CardHeader className="pb-2">
@@ -229,156 +189,74 @@ export function PerformanceAnalytics({ userProfile }: PerformanceAnalyticsProps)
           </CardContent>
         </Card>
 
-        {/* Status Distribution Pie */}
-        <Card className="border border-border bg-card shadow-sm">
+        {/* Subject-wise Bar Chart */}
+        <Card className="border border-border bg-card shadow-sm lg:col-span-3">
           <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <PieChartIcon className="h-4 w-4 text-green-500" />
-              Topic Status
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2 text-foreground">
+                <BarChart3 className="h-5 w-5 text-primary" />
+                Subject-wise Performance
+              </CardTitle>
+              <div className="flex gap-3">
+                {Object.entries(STATUS_CONFIG).map(([key, config]) => (
+                  <div key={key} className="flex items-center gap-1.5">
+                    <div
+                      className="h-2 w-2 rounded-full"
+                      style={{
+                        backgroundColor:
+                          key === "strong"
+                            ? CHART_COLORS.success
+                            : key === "moderate"
+                              ? CHART_COLORS.warning
+                              : CHART_COLORS.destructive,
+                      }}
+                    />
+                    <span className="text-xs text-muted-foreground">{config.label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="h-[140px]">
+            <div className="h-[200px]">
               <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={statusDistribution}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={35}
-                    outerRadius={55}
-                    paddingAngle={3}
-                    dataKey="value"
-                    strokeWidth={0}
-                  >
-                    {statusDistribution.map((entry, index) => (
+                <BarChart
+                  data={accuracyData}
+                  margin={{ top: 20, right: 20, left: 0, bottom: 5 }}
+                >
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    stroke="var(--border)"
+                    vertical={false}
+                  />
+                  <XAxis
+                    dataKey="name"
+                    tick={{ fontSize: 12, fill: "var(--muted-foreground)" }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <YAxis
+                    domain={[0, 100]}
+                    tick={{ fontSize: 12, fill: "var(--muted-foreground)" }}
+                    axisLine={false}
+                    tickLine={false}
+                    tickFormatter={(value) => `${value}%`}
+                  />
+                  <Tooltip content={<CustomTooltip />} cursor={{ fill: "var(--secondary)" }} />
+                  <Bar dataKey="accuracy" name="Accuracy" radius={[4, 4, 0, 0]} maxBarSize={48}>
+                    {accuracyData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.fill} />
                     ))}
-                  </Pie>
-                  <Tooltip content={<CustomTooltip />} />
-                </PieChart>
+                  </Bar>
+                </BarChart>
               </ResponsiveContainer>
-            </div>
-            <div className="flex justify-center gap-4">
-              {statusDistribution.map((item) => (
-                <div key={item.name} className="flex items-center gap-1.5">
-                  <div
-                    className="h-2 w-2 rounded-full"
-                    style={{ backgroundColor: item.fill }}
-                  />
-                  <span className="text-xs text-muted-foreground">
-                    {item.name} ({item.value})
-                  </span>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Quick Stats */}
-        <Card className="border border-border bg-card shadow-sm">
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <BarChart3 className="h-4 w-4 text-amber-500" />
-              Quick Insights
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex items-center justify-between rounded-lg border border-destructive/30 bg-destructive/10 p-3">
-              <div className="flex items-center gap-2">
-                <TrendingDown className="h-4 w-4 text-destructive" />
-                <span className="text-sm text-foreground">Weak Topics</span>
-              </div>
-              <Badge variant="outline" className="border-destructive/30 text-destructive">
-                {weakTopics.length}
-              </Badge>
-            </div>
-            <div className="flex items-center justify-between rounded-lg border border-green-500/30 bg-green-500/10 p-3">
-              <div className="flex items-center gap-2">
-                <TrendingUp className="h-4 w-4 text-green-500" />
-                <span className="text-sm text-foreground">Strong Topics</span>
-              </div>
-              <Badge variant="outline" className="border-green-500/30 text-green-500">
-                {strongTopics.length}
-              </Badge>
-            </div>
-            <div className="flex items-center justify-between rounded-lg border border-border bg-secondary/50 p-3">
-              <span className="text-sm text-foreground">Study Streak</span>
-              <span className="font-semibold text-amber-500">
-                {userProfile.studyStreak} days
-              </span>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Bottom Row - Bar Chart */}
-      <Card className="border border-border bg-card shadow-sm">
-        <CardHeader className="pb-2">
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2 text-foreground">
-              <BarChart3 className="h-5 w-5 text-primary" />
-              Subject-wise Performance
-            </CardTitle>
-            <div className="flex gap-3">
-              {Object.entries(STATUS_CONFIG).map(([key, config]) => (
-                <div key={key} className="flex items-center gap-1.5">
-                  <div
-                    className="h-2 w-2 rounded-full"
-                    style={{
-                      backgroundColor:
-                        key === "strong"
-                          ? CHART_COLORS.success
-                          : key === "moderate"
-                            ? CHART_COLORS.warning
-                            : CHART_COLORS.destructive,
-                    }}
-                  />
-                  <span className="text-xs text-muted-foreground">{config.label}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="h-[240px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={accuracyData}
-                margin={{ top: 20, right: 20, left: 0, bottom: 5 }}
-              >
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                  stroke="var(--border)"
-                  vertical={false}
-                />
-                <XAxis
-                  dataKey="name"
-                  tick={{ fontSize: 12, fill: "var(--muted-foreground)" }}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <YAxis
-                  domain={[0, 100]}
-                  tick={{ fontSize: 12, fill: "var(--muted-foreground)" }}
-                  axisLine={false}
-                  tickLine={false}
-                  tickFormatter={(value) => `${value}%`}
-                />
-                <Tooltip content={<CustomTooltip />} cursor={{ fill: "var(--secondary)" }} />
-                <Bar dataKey="accuracy" name="Accuracy" radius={[4, 4, 0, 0]} maxBarSize={48}>
-                  {accuracyData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.fill} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Topic Details Grid */}
-      <div className="grid gap-4 md:grid-cols-2">
+      {/* Bottom Row - Topic Details */}
+      <div className="grid gap-6 md:grid-cols-2">
         {/* Weak Topics */}
         <Card className="border border-border bg-card shadow-sm">
           <CardHeader className="pb-3">
@@ -389,7 +267,7 @@ export function PerformanceAnalytics({ userProfile }: PerformanceAnalyticsProps)
           </CardHeader>
           <CardContent>
             {weakTopics.length === 0 ? (
-              <p className="text-center text-sm text-muted-foreground">
+              <p className="text-center text-sm text-muted-foreground py-4">
                 Great job! No weak areas detected.
               </p>
             ) : (
@@ -423,7 +301,7 @@ export function PerformanceAnalytics({ userProfile }: PerformanceAnalyticsProps)
           </CardHeader>
           <CardContent>
             {strongTopics.length === 0 ? (
-              <p className="text-center text-sm text-muted-foreground">
+              <p className="text-center text-sm text-muted-foreground py-4">
                 Keep practicing to build strong areas!
               </p>
             ) : (
@@ -450,3 +328,6 @@ export function PerformanceAnalytics({ userProfile }: PerformanceAnalyticsProps)
     </div>
   );
 }
+
+// Cell import for Bar chart
+import { Cell } from "recharts";

@@ -9,12 +9,12 @@ import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { StatsCards } from "@/components/dashboard/stats-cards";
 import { StudyPlanTimeline } from "@/components/dashboard/study-plan-timeline";
 import { PerformanceAnalytics } from "@/components/dashboard/performance-analytics";
-import { CompanySelector } from "@/components/dashboard/company-selector";
+import { StreakHeatmap } from "@/components/dashboard/streak-heatmap";
 import { ChatInterface } from "@/components/chat/chat-interface";
 import { TestSystem } from "@/components/test/test-system";
 import { ProfileSync } from "@/components/profile/profile-sync";
 import { StudyResources } from "@/components/resources/study-resources";
-import { userProfile as initialProfile, companies } from "@/lib/data";
+import { userProfile as initialProfile } from "@/lib/data";
 import type { UserProfile, TestResult, LeetCodeProfile, StudyBlock } from "@/lib/types";
 import { Loader2 } from "lucide-react";
 
@@ -24,7 +24,6 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("dashboard");
   const [userProfile, setUserProfile] = useState<UserProfile>(initialProfile);
-  const [selectedCompany, setSelectedCompany] = useState<string | null>(companies[0]?.name || null);
   const [recommendedTopic, setRecommendedTopic] = useState<string | undefined>();
   const [selectedSubject, setSelectedSubject] = useState<string | undefined>();
 
@@ -166,10 +165,10 @@ export default function Home() {
   // Loading state
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900">
+      <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
-          <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-          <p className="text-sm text-gray-500 dark:text-gray-400">Loading...</p>
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-sm text-muted-foreground">Loading...</p>
         </div>
       </div>
     );
@@ -189,22 +188,19 @@ export default function Home() {
       {activeTab === "dashboard" && (
         <div className="space-y-6">
           <StatsCards userProfile={userProfile} />
-          <div className="grid gap-6 lg:grid-cols-3">
-            <div className="lg:col-span-2">
-              <StudyPlanTimeline
-                userProfile={userProfile}
-                availableHours={2}
-                onStartBlock={handleStartBlock}
-                onNavigateToTopic={handleNavigateToTopic}
-              />
-            </div>
-            <div>
-              <CompanySelector
-                selectedCompany={selectedCompany}
-                onSelectCompany={setSelectedCompany}
-              />
-            </div>
-          </div>
+          
+          {/* Streak Heatmap */}
+          <StreakHeatmap studyStreak={userProfile.studyStreak} />
+          
+          {/* Study Plan - Full Width */}
+          <StudyPlanTimeline
+            userProfile={userProfile}
+            availableHours={2}
+            onStartBlock={handleStartBlock}
+            onNavigateToTopic={handleNavigateToTopic}
+          />
+          
+          {/* Performance Analytics */}
           <PerformanceAnalytics userProfile={userProfile} />
         </div>
       )}
@@ -228,14 +224,12 @@ export default function Home() {
       )}
 
       {activeTab === "chat" && (
-        <div className="h-[calc(100vh-10rem)]">
-          <ChatInterface
-            onPractice={handlePractice}
-            onRevise={handleRevise}
-            onTest={handleTest}
-            onSyncProfile={handleSyncProfile}
-          />
-        </div>
+        <ChatInterface
+          onPractice={handlePractice}
+          onRevise={handleRevise}
+          onTest={handleTest}
+          onSyncProfile={handleSyncProfile}
+        />
       )}
     </DashboardLayout>
   );
