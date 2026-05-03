@@ -30,28 +30,28 @@ const agentConfig = {
     color: "text-blue-500",
     bgColor: "bg-blue-500/10",
     borderColor: "border-blue-500/30",
-    label: "Manager Agent",
+    label: "Manager",
   },
   planner: {
     icon: Target,
     color: "text-primary",
     bgColor: "bg-primary/10",
     borderColor: "border-primary/30",
-    label: "Planner Agent",
+    label: "Planner",
   },
   analyzer: {
     icon: LineChart,
     color: "text-purple-500",
     bgColor: "bg-purple-500/10",
     borderColor: "border-purple-500/30",
-    label: "Analyzer Agent",
+    label: "Analyzer",
   },
   recommendation: {
     icon: Lightbulb,
     color: "text-amber-500",
     bgColor: "bg-amber-500/10",
     borderColor: "border-amber-500/30",
-    label: "Recommendation Agent",
+    label: "Recommendations",
   },
 };
 
@@ -166,12 +166,12 @@ export function AgentResponseCard({
     const otherItems = actionItems.filter((a) => a.priority !== "high").slice(0, 4);
 
     return (
-      <div className="mt-3 space-y-3 border-t border-border pt-3">
+      <div className="mt-4 space-y-4 border-t border-border pt-4">
         {/* Priority Actions */}
         {priorityItems.length > 0 && (
-          <div className="space-y-2">
-            <div className="flex items-center gap-2 text-xs font-medium text-red-500 dark:text-red-400">
-              <Target className="h-3 w-3" />
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 text-sm font-medium text-red-500 dark:text-red-400">
+              <Target className="h-4 w-4" />
               Priority Actions
             </div>
             <div className="space-y-2">
@@ -187,27 +187,27 @@ export function AgentResponseCard({
                       onSyncProfile();
                     }
                   }}
-                  className="group flex w-full items-center justify-between rounded-lg border border-red-500/30 bg-red-500/5 p-2.5 text-left transition-all hover:bg-red-500/10 dark:border-red-400/30 dark:bg-red-400/5 dark:hover:bg-red-400/10"
+                  className="group flex w-full items-center justify-between rounded-xl border border-red-500/30 bg-red-500/5 p-3.5 text-left transition-all hover:bg-red-500/10 dark:border-red-400/30 dark:bg-red-400/5 dark:hover:bg-red-400/10"
                 >
-                  <div className="flex items-center gap-2">
-                    <div className="rounded-md bg-red-500/10 p-1 dark:bg-red-400/10">
-                      <Target className="h-3.5 w-3.5 text-red-500 dark:text-red-400" />
+                  <div className="flex items-center gap-3">
+                    <div className="rounded-lg bg-red-500/10 p-2 dark:bg-red-400/10">
+                      <Target className="h-4 w-4 text-red-500 dark:text-red-400" />
                     </div>
                     <div>
-                      <span className="text-sm font-medium text-foreground">
+                      <span className="text-base font-medium text-foreground">
                         {item.label}
                       </span>
-                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                        <Clock className="h-2.5 w-2.5" />
+                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                        <Clock className="h-3 w-3" />
                         ~30 min
                       </div>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Badge variant="outline" className="border-red-500/30 text-red-500 text-xs dark:border-red-400/30 dark:text-red-400">
-                      High
+                    <Badge variant="outline" className="border-red-500/30 text-red-500 dark:border-red-400/30 dark:text-red-400">
+                      High Priority
                     </Badge>
-                    <Play className="h-3.5 w-3.5 text-red-500 transition-transform group-hover:translate-x-1 dark:text-red-400" />
+                    <Play className="h-4 w-4 text-red-500 transition-transform group-hover:translate-x-1 dark:text-red-400" />
                   </div>
                 </button>
               ))}
@@ -217,9 +217,9 @@ export function AgentResponseCard({
 
         {/* Recommended Actions */}
         {otherItems.length > 0 && (
-          <div className="space-y-2">
-            <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
-              <Lightbulb className="h-3 w-3" />
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+              <Lightbulb className="h-4 w-4" />
               Recommended Actions
             </div>
             <div className="flex flex-wrap gap-2">
@@ -247,11 +247,11 @@ export function AgentResponseCard({
                         onSyncProfile();
                       }
                     }}
-                    className="group flex items-center gap-1.5 rounded-md border border-border bg-secondary/50 px-2.5 py-1.5 text-left text-xs font-medium text-foreground transition-all hover:border-primary/50 hover:bg-secondary"
+                    className="group flex items-center gap-2 rounded-lg border border-border bg-secondary/50 px-3 py-2 text-left text-sm font-medium text-foreground transition-all hover:border-primary/50 hover:bg-secondary"
                   >
-                    <ActionIcon className="h-3 w-3 text-muted-foreground" />
+                    <ActionIcon className="h-4 w-4 text-muted-foreground" />
                     {item.label}
-                    <ChevronRight className="h-3 w-3 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+                    <ChevronRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
                   </button>
                 );
               })}
@@ -260,35 +260,35 @@ export function AgentResponseCard({
         )}
 
         {/* Quick Start */}
-        <div className="flex items-center justify-between rounded-lg border border-primary/30 bg-primary/5 p-2.5">
-          <div className="flex items-center gap-2">
-            <div className="rounded-md bg-primary/10 p-1">
-              <Play className="h-3.5 w-3.5 text-primary" />
+        <div className="flex items-center justify-between rounded-xl border border-primary/30 bg-primary/5 p-4">
+          <div className="flex items-center gap-3">
+            <div className="rounded-lg bg-primary/10 p-2">
+              <Play className="h-4 w-4 text-primary" />
             </div>
-            <span className="text-sm font-medium text-foreground">Quick Start</span>
+            <span className="text-base font-medium text-foreground">Quick Start</span>
           </div>
           <div className="flex gap-2">
             <Button
-              size="sm"
+              size="default"
               variant="outline"
               onClick={() => onTest?.()}
-              className="h-7 border-border text-xs hover:border-primary"
+              className="border-border hover:border-primary"
             >
-              <Target className="mr-1 h-3 w-3" />
-              Test
+              <Target className="mr-2 h-4 w-4" />
+              Take Test
             </Button>
             <Button
-              size="sm"
+              size="default"
               onClick={() => {
                 const firstPriority = priorityItems[0] || otherItems[0];
                 if (firstPriority?.topic && onPractice) {
                   onPractice(firstPriority.topic, firstPriority.subject || "DSA");
                 }
               }}
-              className="h-7 bg-primary text-xs text-primary-foreground hover:bg-primary/90"
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
             >
-              <Play className="mr-1 h-3 w-3" />
-              Practice
+              <Play className="mr-2 h-4 w-4" />
+              Start Practice
             </Button>
           </div>
         </div>
@@ -308,23 +308,23 @@ export function AgentResponseCard({
     if (!data?.weakTopics || data.weakTopics.length === 0) return null;
 
     return (
-      <div className="mt-3 border-t border-border pt-3">
-        <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground mb-2">
-          <Target className="h-3 w-3" />
+      <div className="mt-4 border-t border-border pt-4">
+        <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground mb-3">
+          <Target className="h-4 w-4" />
           Click to practice weak areas
         </div>
         <div className="flex flex-wrap gap-2">
-          {data.weakTopics.slice(0, 3).map((topic, index) => {
+          {data.weakTopics.slice(0, 4).map((topic, index) => {
             const topicName = topic.split(" (")[0];
             return (
               <Button
                 key={index}
-                size="sm"
+                size="default"
                 variant="outline"
                 onClick={() => onPractice?.(topicName, "DSA")}
-                className="h-7 border-red-500/30 text-xs text-red-500 hover:bg-red-500/10 dark:border-red-400/30 dark:text-red-400 dark:hover:bg-red-400/10"
+                className="border-red-500/30 text-red-500 hover:bg-red-500/10 dark:border-red-400/30 dark:text-red-400 dark:hover:bg-red-400/10"
               >
-                <Target className="mr-1 h-3 w-3" />
+                <Target className="mr-2 h-4 w-4" />
                 {topicName}
               </Button>
             );
@@ -339,20 +339,20 @@ export function AgentResponseCard({
     if (response.agent !== "planner") return null;
 
     return (
-      <div className="mt-3 border-t border-border pt-3">
+      <div className="mt-4 border-t border-border pt-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
-            <BookOpen className="h-3 w-3" />
-            Start studying now
+          <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+            <BookOpen className="h-4 w-4" />
+            Ready to start studying?
           </div>
           <Button
-            size="sm"
+            size="default"
             variant="outline"
             onClick={() => onTest?.()}
-            className="h-7 border-primary/30 text-xs text-primary hover:bg-primary/10"
+            className="border-primary/30 text-primary hover:bg-primary/10"
           >
-            <Play className="mr-1 h-3 w-3" />
-            Take a Test
+            <Play className="mr-2 h-4 w-4" />
+            Take a Practice Test
           </Button>
         </div>
       </div>
@@ -360,27 +360,27 @@ export function AgentResponseCard({
   };
 
   return (
-    <Card className={`border ${config.borderColor} bg-card shadow-sm`}>
-      <CardHeader className="pb-2 pt-3 px-3">
+    <Card className={`border-2 ${config.borderColor} bg-card shadow-sm`}>
+      <CardHeader className="pb-3 pt-4 px-5">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className={`rounded-md p-1.5 ${config.bgColor}`}>
-              <Icon className={`h-3.5 w-3.5 ${config.color}`} />
+          <div className="flex items-center gap-3">
+            <div className={`rounded-xl p-2.5 ${config.bgColor}`}>
+              <Icon className={`h-5 w-5 ${config.color}`} />
             </div>
-            <CardTitle className="text-sm font-medium text-foreground">
+            <CardTitle className="text-base font-semibold text-foreground">
               {response.title}
             </CardTitle>
           </div>
           <Badge
             variant="outline"
-            className={`text-[10px] ${config.borderColor} ${config.color}`}
+            className={`text-xs font-medium ${config.borderColor} ${config.color}`}
           >
             {config.label}
           </Badge>
         </div>
       </CardHeader>
-      <CardContent className="px-3 pb-3 pt-0">
-        <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed text-muted-foreground">
+      <CardContent className="px-5 pb-4 pt-0">
+        <pre className="whitespace-pre-wrap font-sans text-base leading-relaxed text-muted-foreground">
           {response.content}
         </pre>
         {renderAnalyzerActions()}

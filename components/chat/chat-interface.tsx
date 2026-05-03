@@ -4,8 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Send, Bot, User, Sparkles } from "lucide-react";
+import { Send, Bot, User, Sparkles, ArrowDown } from "lucide-react";
 import { AgentResponseCard } from "./agent-response";
 import { processUserInput } from "@/lib/agents";
 import { userProfile } from "@/lib/data";
@@ -19,10 +18,10 @@ interface ChatInterfaceProps {
 }
 
 const suggestionPrompts = [
-  "Prepare for Amazon",
+  "Prepare for Amazon interview",
   "Improve my DSA skills",
-  "Help with weak areas",
-  "Prepare for TCS",
+  "Help with my weak areas",
+  "Create a study plan for TCS",
 ];
 
 export function ChatInterface({
@@ -34,11 +33,37 @@ export function ChatInterface({
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showScrollButton, setShowScrollButton] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  // Check if user has scrolled up
+  const handleScroll = () => {
+    if (scrollContainerRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } = scrollContainerRef.current;
+      const isNearBottom = scrollHeight - scrollTop - clientHeight < 100;
+      setShowScrollButton(!isNearBottom);
+    }
+  };
+
+  // Smooth scroll to bottom
+  const scrollToBottom = (behavior: ScrollBehavior = "smooth") => {
+    messagesEndRef.current?.scrollIntoView({ behavior });
+  };
+
+  // Auto-scroll only when a new message is added and user is near bottom
   useEffect(() => {
     if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
+      const { scrollTop, scrollHeight, clientHeight } = scrollContainerRef.current;
+      const isNearBottom = scrollHeight - scrollTop - clientHeight < 200;
+      
+      // Only auto-scroll if user is already near the bottom
+      if (isNearBottom) {
+        scrollToBottom("smooth");
+      } else {
+        // Show button to scroll down
+        setShowScrollButton(true);
+      }
     }
   }, [messages]);
 
@@ -56,15 +81,18 @@ export function ChatInterface({
     setInput("");
     setIsProcessing(true);
 
+    // Scroll to show user message
+    setTimeout(() => scrollToBottom("smooth"), 100);
+
     // Simulate processing delay for better UX
-    await new Promise((resolve) => setTimeout(resolve, 800));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 
     const agentResponses = processUserInput(messageText, userProfile);
 
     const assistantMessage: ChatMessage = {
       id: (Date.now() + 1).toString(),
       role: "assistant",
-      content: "Here's what our AI agents have analyzed for you:",
+      content: "Here is what our AI agents have analyzed for you:",
       timestamp: new Date(),
       agentResponses,
     };
@@ -80,39 +108,48 @@ export function ChatInterface({
 
   return (
     <Card className="flex h-full flex-col border-border bg-card overflow-hidden">
-      <CardHeader className="shrink-0 border-b border-border pb-4">
-        <CardTitle className="flex items-center gap-2 text-lg text-foreground">
-          <div className="rounded-lg bg-primary/10 p-1.5">
-            <Bot className="h-5 w-5 text-primary" />
+      {/* Header */}
+      <CardHeader className="shrink-0 border-b border-border px-6 py-5">
+        <CardTitle className="flex items-center gap-3 text-xl text-foreground">
+          <div className="rounded-xl bg-primary/10 p-2.5">
+            <Bot className="h-6 w-6 text-primary" />
           </div>
-          AI Interview Assistant
+          <div>
+            <div className="font-semibold">AI Interview Assistant</div>
+            <div className="text-sm font-normal text-muted-foreground">
+              Multi-agent system to help you prepare
+            </div>
+          </div>
         </CardTitle>
       </CardHeader>
-      <CardContent className="flex flex-1 flex-col p-0 min-h-0">
+
+      <CardContent className="flex flex-1 flex-col p-0 min-h-0 relative">
         {/* Scrollable messages area */}
         <div 
           ref={scrollContainerRef}
-          className="flex-1 overflow-y-auto p-4 bg-background"
+          onScroll={handleScroll}
+          className="flex-1 overflow-y-auto bg-background"
         >
           {messages.length === 0 ? (
-            <div className="flex h-full flex-col items-center justify-center py-12">
-              <div className="rounded-full bg-primary/10 p-4">
-                <Sparkles className="h-8 w-8 text-primary" />
+            /* Empty state - centered welcome */
+            <div className="flex h-full flex-col items-center justify-center px-6 py-16">
+              <div className="rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 p-6">
+                <Sparkles className="h-12 w-12 text-primary" />
               </div>
-              <h3 className="mt-4 text-lg font-medium text-foreground">
+              <h3 className="mt-6 text-2xl font-semibold text-foreground">
                 Start Your Interview Prep
               </h3>
-              <p className="mt-2 max-w-sm text-center text-sm text-muted-foreground">
-                Tell me your goals and I&apos;ll coordinate multiple AI agents
-                to create a personalized study plan.
+              <p className="mt-3 max-w-md text-center text-base text-muted-foreground">
+                Tell me your goals and I will coordinate multiple AI agents
+                to create a personalized study plan for you.
               </p>
-              <div className="mt-6 flex flex-wrap justify-center gap-2">
+              <div className="mt-8 flex flex-wrap justify-center gap-3">
                 {suggestionPrompts.map((prompt) => (
                   <Button
                     key={prompt}
                     variant="outline"
-                    size="sm"
-                    className="border-border text-muted-foreground hover:border-primary hover:text-foreground"
+                    size="lg"
+                    className="border-border text-foreground hover:border-primary hover:bg-primary/5"
                     onClick={() => handleSendMessage(prompt)}
                   >
                     {prompt}
@@ -121,43 +158,44 @@ export function ChatInterface({
               </div>
             </div>
           ) : (
-            <div className="space-y-6">
+            /* Messages list */
+            <div className="px-6 py-6 space-y-8">
               {messages.map((message) => (
-                <div key={message.id} className="space-y-4">
+                <div key={message.id} className="space-y-5">
                   {/* Message bubble */}
                   <div
-                    className={`flex items-start gap-3 ${
+                    className={`flex items-start gap-4 ${
                       message.role === "user" ? "flex-row-reverse" : ""
                     }`}
                   >
                     <div
-                      className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${
+                      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${
                         message.role === "user"
                           ? "bg-primary text-primary-foreground"
                           : "bg-secondary text-foreground"
                       }`}
                     >
                       {message.role === "user" ? (
-                        <User className="h-4 w-4" />
+                        <User className="h-5 w-5" />
                       ) : (
-                        <Bot className="h-4 w-4" />
+                        <Bot className="h-5 w-5" />
                       )}
                     </div>
                     <div
-                      className={`max-w-[85%] ${
+                      className={`max-w-[80%] ${
                         message.role === "user" ? "text-right" : ""
                       }`}
                     >
                       <div
-                        className={`inline-block rounded-lg px-4 py-2 ${
+                        className={`inline-block rounded-2xl px-5 py-3 ${
                           message.role === "user"
                             ? "bg-primary text-primary-foreground"
                             : "bg-secondary text-foreground"
                         }`}
                       >
-                        <p className="text-sm">{message.content}</p>
+                        <p className="text-base">{message.content}</p>
                       </div>
-                      <p className="mt-1 text-xs text-muted-foreground">
+                      <p className="mt-2 text-xs text-muted-foreground">
                         {message.timestamp.toLocaleTimeString([], {
                           hour: "2-digit",
                           minute: "2-digit",
@@ -166,9 +204,9 @@ export function ChatInterface({
                     </div>
                   </div>
                   
-                  {/* Agent response cards - stacked vertically for better readability */}
+                  {/* Agent response cards */}
                   {message.agentResponses && (
-                    <div className="ml-11 space-y-3">
+                    <div className="ml-14 space-y-4">
                       {message.agentResponses.map((response, index) => (
                         <AgentResponseCard
                           key={index}
@@ -186,43 +224,58 @@ export function ChatInterface({
               
               {/* Processing indicator */}
               {isProcessing && (
-                <div className="flex items-start gap-3">
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-secondary text-foreground">
-                    <Bot className="h-4 w-4" />
+                <div className="flex items-start gap-4">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-secondary text-foreground">
+                    <Bot className="h-5 w-5" />
                   </div>
-                  <div className="flex items-center gap-2 rounded-lg bg-secondary px-4 py-2">
-                    <div className="flex gap-1">
-                      <span className="h-2 w-2 animate-bounce rounded-full bg-primary [animation-delay:0ms]" />
-                      <span className="h-2 w-2 animate-bounce rounded-full bg-primary [animation-delay:150ms]" />
-                      <span className="h-2 w-2 animate-bounce rounded-full bg-primary [animation-delay:300ms]" />
+                  <div className="flex items-center gap-3 rounded-2xl bg-secondary px-5 py-3">
+                    <div className="flex gap-1.5">
+                      <span className="h-2.5 w-2.5 animate-bounce rounded-full bg-primary [animation-delay:0ms]" />
+                      <span className="h-2.5 w-2.5 animate-bounce rounded-full bg-primary [animation-delay:150ms]" />
+                      <span className="h-2.5 w-2.5 animate-bounce rounded-full bg-primary [animation-delay:300ms]" />
                     </div>
-                    <span className="text-sm text-muted-foreground">
-                      Agents processing...
+                    <span className="text-base text-muted-foreground">
+                      AI agents are analyzing your request...
                     </span>
                   </div>
                 </div>
               )}
+              
+              {/* Scroll anchor */}
+              <div ref={messagesEndRef} />
             </div>
           )}
         </div>
+
+        {/* Scroll to bottom button */}
+        {showScrollButton && messages.length > 0 && (
+          <Button
+            size="icon"
+            variant="secondary"
+            onClick={() => scrollToBottom("smooth")}
+            className="absolute bottom-24 right-6 h-10 w-10 rounded-full shadow-lg border border-border"
+          >
+            <ArrowDown className="h-5 w-5" />
+          </Button>
+        )}
         
         {/* Fixed input area */}
-        <div className="shrink-0 border-t border-border bg-card p-4">
-          <form onSubmit={handleSubmit} className="flex gap-2">
+        <div className="shrink-0 border-t border-border bg-card p-5">
+          <form onSubmit={handleSubmit} className="flex gap-3">
             <Input
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Ask about interview prep, company targets, weak areas..."
-              className="flex-1 border-border bg-secondary text-foreground placeholder:text-muted-foreground"
+              className="flex-1 h-12 text-base border-border bg-secondary text-foreground placeholder:text-muted-foreground rounded-xl px-4"
               disabled={isProcessing}
             />
             <Button
               type="submit"
               size="icon"
               disabled={!input.trim() || isProcessing}
-              className="bg-primary text-primary-foreground hover:bg-primary/90"
+              className="h-12 w-12 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
             >
-              <Send className="h-4 w-4" />
+              <Send className="h-5 w-5" />
             </Button>
           </form>
         </div>
