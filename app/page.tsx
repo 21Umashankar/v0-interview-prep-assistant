@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import { AuthProvider, useAuth } from "@/lib/auth-context";
-import { LoginPage } from "@/components/auth/login-page";
-import { SignupPage } from "@/components/auth/signup-page";
+import { useState, useCallback, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
+import type { User } from "@supabase/supabase-js";
+
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { StatsCards } from "@/components/dashboard/stats-cards";
 import { StudyPlanTimeline } from "@/components/dashboard/study-plan-timeline";
@@ -13,20 +14,46 @@ import { ChatInterface } from "@/components/chat/chat-interface";
 import { TestSystem } from "@/components/test/test-system";
 import { ProfileSync } from "@/components/profile/profile-sync";
 import { StudyResources } from "@/components/resources/study-resources";
-import { userProfile as initialProfile } from "@/lib/data";
+import { userProfile as initialProfile, companies } from "@/lib/data";
 import type { UserProfile, TestResult, LeetCodeProfile, StudyBlock } from "@/lib/types";
 import { Loader2 } from "lucide-react";
 
-function AppContent() {
-  const { user, isLoading } = useAuth();
-  const [authView, setAuthView] = useState<"login" | "signup">("login");
+export default function Home() {
+  const router = useRouter();
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("dashboard");
   const [userProfile, setUserProfile] = useState<UserProfile>(initialProfile);
-  const [selectedCompany, setSelectedCompany] = useState<string | null>(
-    userProfile.targetCompany
-  );
+  const [selectedCompany, setSelectedCompany] = useState<string | null>(companies[0]?.name || null);
   const [recommendedTopic, setRecommendedTopic] = useState<string | undefined>();
   const [selectedSubject, setSelectedSubject] = useState<string | undefined>();
+
+  useEffect(() => {
+    const supabase = createClient();
+
+    const checkUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        router.push("/auth/login");
+        return;
+      }
+      setUser(user);
+      setIsLoading(false);
+    };
+
+    checkUser();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_OUT") {
+        router.push("/auth/login");
+      } else if (session?.user) {
+        setUser(session.user);
+        setIsLoading(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [router]);
 
   // Handle test completion
   const handleTestComplete = useCallback((result: TestResult) => {
@@ -140,22 +167,25 @@ function AppContent() {
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+          <p className="text-sm text-gray-500 dark:text-gray-400">Loading...</p>
+        </div>
       </div>
     );
   }
 
-  // Auth pages
-  if (!user) {
-    if (authView === "login") {
-      return <LoginPage onSwitchToSignup={() => setAuthView("signup")} />;
-    }
-    return <SignupPage onSwitchToLogin={() => setAuthView("login")} />;
-  }
+  const userName = user?.user_metadata?.name || user?.email?.split("@")[0] || "User";
+  const userEmail = user?.email || "";
 
   // Main dashboard
   return (
-    <DashboardLayout activeTab={activeTab} onTabChange={setActiveTab}>
+    <DashboardLayout 
+      activeTab={activeTab} 
+      onTabChange={setActiveTab}
+      userName={userName}
+      userEmail={userEmail}
+    >
       {activeTab === "dashboard" && (
         <div className="space-y-6">
           <StatsCards userProfile={userProfile} />
@@ -175,6 +205,7 @@ function AppContent() {
               />
             </div>
           </div>
+          <PerformanceAnalytics userProfile={userProfile} />
         </div>
       )}
 
@@ -192,10 +223,6 @@ function AppContent() {
         />
       )}
 
-      {activeTab === "analytics" && (
-        <PerformanceAnalytics userProfile={userProfile} />
-      )}
-
       {activeTab === "profile" && (
         <ProfileSync onProfileSync={handleProfileSync} />
       )}
@@ -211,13 +238,5 @@ function AppContent() {
         </div>
       )}
     </DashboardLayout>
-  );
-}
-
-export default function Home() {
-  return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
   );
 }
