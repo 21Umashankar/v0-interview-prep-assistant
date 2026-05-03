@@ -52,3 +52,63 @@ export interface ChatMessage {
   timestamp: Date;
   agentResponses?: AgentResponse[];
 }
+
+// Study Resources
+export interface StudyResource {
+  title: string;
+  platform: "LeetCode" | "GeeksforGeeks" | "YouTube" | "HackerRank" | "InterviewBit";
+  url: string;
+  type: "video" | "article" | "practice";
+  difficulty?: "Easy" | "Medium" | "Hard";
+}
+
+export interface TopicResources {
+  topic: string;
+  subject: string;
+  resources: StudyResource[];
+}
+
+// Test System
+export interface Question {
+  id: string;
+  question: string;
+  options: string[];
+  correctAnswer: number;
+  subject: string;
+  topic: string;
+  difficulty: "Easy" | "Medium" | "Hard";
+  explanation?: string;
+}
+
+export interface TestResult {
+  id: string;
+  date: Date;
+  subject: string;
+  topics: string[];
+  totalQuestions: number;
+  correctAnswers: number;
+  score: number;
+  accuracy: number;
+  timeTaken: number; // in seconds
+  answers: {
+    questionId: string;
+    selectedAnswer: number;
+    isCorrect: boolean;
+  }[];
+}
+
+// LeetCode Profile
+export interface LeetCodeProfile {
+  username: string;
+  totalSolved: number;
+  easySolved: number;
+  mediumSolved: number;
+  hardSolved: number;
+  ranking: number;
+  contestRating?: number;
+  topicWiseProgress: {
+    topic: string;
+    solved: number;
+    total: number;
+  }[];
+}

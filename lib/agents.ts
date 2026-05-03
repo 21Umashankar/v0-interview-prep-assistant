@@ -186,15 +186,20 @@ export function recommendationAgent(
 ): AgentResponse {
   const weakTopics = (analyzerResponse.data?.weakTopics as string[]) || [];
   const recommendations: string[] = [];
+  const suggestedResources: string[] = [];
+  const suggestedTests: string[] = [];
 
   // Generate specific recommendations based on weak areas
   if (weakTopics.length > 0) {
+    const weakestTopic = weakTopics[0].split(" (")[0];
     recommendations.push(
-      `Focus on your weakest area first: ${weakTopics[0].split(" (")[0]}`
+      `Focus on your weakest area first: ${weakestTopic}`
     );
     recommendations.push(
       `Complete at least 5 problems daily from weak topics`
     );
+    suggestedResources.push(`Study ${weakestTopic} from the Resources tab`);
+    suggestedTests.push(`Take a ${weakestTopic} focused test`);
   }
 
   // Add practice recommendations based on accuracy
@@ -203,6 +208,7 @@ export function recommendationAgent(
     recommendations.push(
       `Review concepts before attempting more problems - focus on understanding over quantity`
     );
+    suggestedResources.push(`Watch video tutorials for core concepts`);
   }
 
   // Check practice consistency
@@ -219,27 +225,44 @@ export function recommendationAgent(
   // Add mock test recommendation
   if (userProfile.totalProblems > 200) {
     recommendations.push(`You're ready for a full mock interview - schedule one this week`);
+    suggestedTests.push(`Take a 20-question mixed test to assess overall readiness`);
   }
+
+  // Profile sync recommendation
+  recommendations.push(`Sync your LeetCode profile to import your progress`);
 
   // General recommendations
   recommendations.push(`Take a timed mock test this weekend to assess progress`);
-  recommendations.push(`Review your revision notes for core CS subjects`);
 
   let content = `Personalized Recommendations:\n\n`;
   recommendations.slice(0, 5).forEach((rec, index) => {
     content += `${index + 1}. ${rec}\n`;
   });
 
-  content += `\nNext Steps:\n`;
-  content += `• Start with your weakest DSA topic today\n`;
-  content += `• Spend 30 minutes on concept revision\n`;
-  content += `• Attempt at least 3 medium-difficulty problems`;
+  content += `\nSuggested Study Resources:\n`;
+  suggestedResources.slice(0, 3).forEach((res) => {
+    content += `• ${res}\n`;
+  });
+
+  content += `\nRecommended Tests:\n`;
+  suggestedTests.slice(0, 2).forEach((test) => {
+    content += `• ${test}\n`;
+  });
+
+  content += `\nQuick Actions:\n`;
+  content += `• Use the "Resources" tab to access study materials\n`;
+  content += `• Use the "Test" tab to practice with timed quizzes\n`;
+  content += `• Use the "Profile" tab to sync your LeetCode progress`;
 
   return {
     agent: "recommendation",
     title: "Action Items",
     content,
-    data: { recommendations: recommendations.slice(0, 5) },
+    data: { 
+      recommendations: recommendations.slice(0, 5),
+      suggestedResources: suggestedResources.slice(0, 3),
+      suggestedTests: suggestedTests.slice(0, 2),
+    },
   };
 }
 
