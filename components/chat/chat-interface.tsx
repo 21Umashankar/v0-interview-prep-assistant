@@ -12,6 +12,13 @@ import { processUserInput } from "@/lib/agents";
 import { userProfile } from "@/lib/data";
 import type { ChatMessage } from "@/lib/types";
 
+interface ChatInterfaceProps {
+  onPractice?: (topic: string, subject: string) => void;
+  onRevise?: (topic: string, subject: string) => void;
+  onTest?: (topic?: string) => void;
+  onSyncProfile?: () => void;
+}
+
 const suggestionPrompts = [
   "Prepare for Amazon",
   "Improve my DSA skills",
@@ -19,7 +26,12 @@ const suggestionPrompts = [
   "Prepare for TCS",
 ];
 
-export function ChatInterface() {
+export function ChatInterface({
+  onPractice,
+  onRevise,
+  onTest,
+  onSyncProfile,
+}: ChatInterfaceProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
@@ -152,7 +164,14 @@ export function ChatInterface() {
                   {message.agentResponses && (
                     <div className="mt-4 grid gap-3 pl-11 md:grid-cols-2">
                       {message.agentResponses.map((response, index) => (
-                        <AgentResponseCard key={index} response={response} />
+                        <AgentResponseCard
+                          key={index}
+                          response={response}
+                          onPractice={onPractice}
+                          onRevise={onRevise}
+                          onTest={onTest}
+                          onSyncProfile={onSyncProfile}
+                        />
                       ))}
                     </div>
                   )}

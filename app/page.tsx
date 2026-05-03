@@ -6,7 +6,6 @@ import { Badge } from "@/components/ui/badge";
 import { StatsCards } from "@/components/dashboard/stats-cards";
 import { StudyPlanTimeline } from "@/components/dashboard/study-plan-timeline";
 import { PerformanceAnalytics } from "@/components/dashboard/performance-analytics";
-import { InteractiveActions } from "@/components/dashboard/interactive-actions";
 import { CompanySelector } from "@/components/dashboard/company-selector";
 import { ChatInterface } from "@/components/chat/chat-interface";
 import { TestSystem } from "@/components/test/test-system";
@@ -25,10 +24,11 @@ import {
   BarChart3,
   Sparkles,
 } from "lucide-react";
+// Note: Zap is kept for the "4 Active Agents" badge in the header
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState("dashboard");
-  const [dashboardView, setDashboardView] = useState<"overview" | "analytics" | "actions">("overview");
+  const [dashboardView, setDashboardView] = useState<"overview" | "analytics">("overview");
   const [userProfile, setUserProfile] = useState<UserProfile>(initialProfile);
   const [selectedCompany, setSelectedCompany] = useState<string | null>(
     userProfile.targetCompany
@@ -286,17 +286,6 @@ export default function Home() {
                 <BarChart3 className="h-4 w-4" />
                 Analytics
               </button>
-              <button
-                onClick={() => setDashboardView("actions")}
-                className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all ${
-                  dashboardView === "actions"
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-secondary text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                <Zap className="h-4 w-4" />
-                Actions
-              </button>
             </div>
 
             {/* Stats Overview - Always visible */}
@@ -325,16 +314,6 @@ export default function Home() {
             {dashboardView === "analytics" && (
               <PerformanceAnalytics userProfile={userProfile} />
             )}
-
-            {dashboardView === "actions" && (
-              <InteractiveActions
-                userProfile={userProfile}
-                onPractice={handlePractice}
-                onRevise={handleRevise}
-                onTest={handleTest}
-                onSyncProfile={handleSyncProfile}
-              />
-            )}
           </TabsContent>
 
           {/* Test Tab */}
@@ -360,7 +339,12 @@ export default function Home() {
 
           {/* Chat Tab */}
           <TabsContent value="chat" className="h-[calc(100vh-12rem)]">
-            <ChatInterface />
+            <ChatInterface
+              onPractice={handlePractice}
+              onRevise={handleRevise}
+              onTest={handleTest}
+              onSyncProfile={handleSyncProfile}
+            />
           </TabsContent>
         </Tabs>
       </main>
