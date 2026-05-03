@@ -5,6 +5,24 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import {
   Sun,
   Sunset,
@@ -17,6 +35,10 @@ import {
   Clock,
   Sparkles,
   ChevronRight,
+  Pencil,
+  Plus,
+  Trash2,
+  GripVertical,
 } from "lucide-react";
 import type { UserProfile, StudyBlock, DailyStudyPlan } from "@/lib/types";
 
@@ -60,6 +82,26 @@ const taskConfig = {
     label: "Test",
   },
 };
+
+const availableTopics = [
+  { topic: "Arrays", subject: "DSA" },
+  { topic: "Strings", subject: "DSA" },
+  { topic: "Linked Lists", subject: "DSA" },
+  { topic: "Trees", subject: "DSA" },
+  { topic: "Graphs", subject: "DSA" },
+  { topic: "Dynamic Programming", subject: "DSA" },
+  { topic: "Sorting", subject: "DSA" },
+  { topic: "Searching", subject: "DSA" },
+  { topic: "SQL Queries", subject: "DBMS" },
+  { topic: "Normalization", subject: "DBMS" },
+  { topic: "Process Management", subject: "Operating Systems" },
+  { topic: "Memory Management", subject: "Operating Systems" },
+  { topic: "TCP/IP", subject: "Computer Networks" },
+  { topic: "OSI Model", subject: "Computer Networks" },
+  { topic: "Percentages", subject: "Aptitude" },
+  { topic: "Time & Work", subject: "Aptitude" },
+  { topic: "Logical Reasoning", subject: "Aptitude" },
+];
 
 function generateStudyPlan(
   userProfile: UserProfile,
@@ -172,6 +214,16 @@ export function StudyPlanTimeline({
     generateStudyPlan(userProfile, availableHours)
   );
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editingBlock, setEditingBlock] = useState<StudyBlock | null>(null);
+  const [isAddingBlock, setIsAddingBlock] = useState(false);
+  
+  // New block form state
+  const [newBlockTopic, setNewBlockTopic] = useState("");
+  const [newBlockTimeSlot, setNewBlockTimeSlot] = useState<"morning" | "afternoon" | "evening">("morning");
+  const [newBlockTask, setNewBlockTask] = useState<"practice" | "revise" | "test">("practice");
+  const [newBlockDuration, setNewBlockDuration] = useState(30);
+  const [newBlockPriority, setNewBlockPriority] = useState<"high" | "medium" | "low">("medium");
 
   const progressPercentage = useMemo(() => {
     if (studyPlan.totalMinutes === 0) return 0;
@@ -220,42 +272,221 @@ export function StudyPlanTimeline({
     }
   };
 
+  const handleDeleteBlock = (blockId: string) => {
+    setStudyPlan((prev) => {
+      const block = prev.blocks.find((b) => b.id === blockId);
+      return {
+        ...prev,
+        blocks: prev.blocks.filter((b) => b.id !== blockId),
+        totalMinutes: prev.totalMinutes - (block?.duration || 0),
+      };
+    });
+  };
+
+  const handleEditBlock = (block: StudyBlock) => {
+    setEditingBlock(block);
+    setNewBlockTopic(block.topic);
+    setNewBlockTimeSlot(block.timeSlot);
+    setNewBlockTask(block.task);
+    setNewBlockDuration(block.duration);
+    setNewBlockPriority(block.priority);
+  };
+
+  const handleSaveEditBlock = () => {
+    if (!editingBlock || !newBlockTopic) return;
+    
+    const selectedTopic = availableTopics.find(t => t.topic === newBlockTopic);
+    
+    setStudyPlan((prev) => ({
+      ...prev,
+      blocks: prev.blocks.map((b) =>
+        b.id === editingBlock.id
+          ? {
+              ...b,
+              topic: newBlockTopic,
+              subject: selectedTopic?.subject || b.subject,
+              timeSlot: newBlockTimeSlot,
+              task: newBlockTask,
+              duration: newBlockDuration,
+              priority: newBlockPriority,
+            }
+          : b
+      ),
+      totalMinutes: prev.totalMinutes - editingBlock.duration + newBlockDuration,
+    }));
+    
+    setEditingBlock(null);
+    resetForm();
+  };
+
+  const handleAddBlock = () => {
+    if (!newBlockTopic) return;
+    
+    const selectedTopic = availableTopics.find(t => t.topic === newBlockTopic);
+    const newBlock: StudyBlock = {
+      id: `block-${Date.now()}`,
+      timeSlot: newBlockTimeSlot,
+      duration: newBlockDuration,
+      topic: newBlockTopic,
+      subject: selectedTopic?.subject || "General",
+      task: newBlockTask,
+      status: "pending",
+      priority: newBlockPriority,
+    };
+    
+    setStudyPlan((prev) => ({
+      ...prev,
+      blocks: [...prev.blocks, newBlock],
+      totalMinutes: prev.totalMinutes + newBlockDuration,
+    }));
+    
+    setIsAddingBlock(false);
+    resetForm();
+  };
+
+  const resetForm = () => {
+    setNewBlockTopic("");
+    setNewBlockTimeSlot("morning");
+    setNewBlockTask("practice");
+    setNewBlockDuration(30);
+    setNewBlockPriority("medium");
+  };
+
+  const BlockForm = ({ onSave, onCancel, title, description }: { onSave: () => void; onCancel: () => void; title: string; description: string }) => (
+    <DialogContent className="sm:max-w-md">
+      <DialogHeader>
+        <DialogTitle>{title}</DialogTitle>
+        <DialogDescription>{description}</DialogDescription>
+      </DialogHeader>
+      <div className="space-y-4 py-4">
+        <div className="space-y-2">
+          <Label>Topic</Label>
+          <Select value={newBlockTopic} onValueChange={setNewBlockTopic}>
+            <SelectTrigger className="border-border bg-secondary">
+              <SelectValue placeholder="Select a topic" />
+            </SelectTrigger>
+            <SelectContent>
+              {availableTopics.map((t) => (
+                <SelectItem key={t.topic} value={t.topic}>
+                  {t.topic} ({t.subject})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label>Time Slot</Label>
+            <Select value={newBlockTimeSlot} onValueChange={(v) => setNewBlockTimeSlot(v as "morning" | "afternoon" | "evening")}>
+              <SelectTrigger className="border-border bg-secondary">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="morning">Morning</SelectItem>
+                <SelectItem value="afternoon">Afternoon</SelectItem>
+                <SelectItem value="evening">Evening</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="space-y-2">
+            <Label>Task Type</Label>
+            <Select value={newBlockTask} onValueChange={(v) => setNewBlockTask(v as "practice" | "revise" | "test")}>
+              <SelectTrigger className="border-border bg-secondary">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="practice">Practice</SelectItem>
+                <SelectItem value="revise">Revise</SelectItem>
+                <SelectItem value="test">Test</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label>Duration (minutes)</Label>
+            <Input
+              type="number"
+              value={newBlockDuration}
+              onChange={(e) => setNewBlockDuration(parseInt(e.target.value) || 30)}
+              min={15}
+              max={120}
+              className="border-border bg-secondary"
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label>Priority</Label>
+            <Select value={newBlockPriority} onValueChange={(v) => setNewBlockPriority(v as "high" | "medium" | "low")}>
+              <SelectTrigger className="border-border bg-secondary">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="high">High</SelectItem>
+                <SelectItem value="medium">Medium</SelectItem>
+                <SelectItem value="low">Low</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </div>
+      <DialogFooter>
+        <Button variant="outline" onClick={onCancel}>Cancel</Button>
+        <Button onClick={onSave} disabled={!newBlockTopic}>Save</Button>
+      </DialogFooter>
+    </DialogContent>
+  );
+
   return (
-    <Card className="border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/50 shadow-sm">
+    <Card className="border-border bg-card shadow-sm">
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/30">
-              <Sparkles className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-primary/30 bg-primary/10">
+              <Sparkles className="h-4 w-4 text-primary" />
             </div>
             <div>
-              <CardTitle className="text-base font-semibold text-gray-900 dark:text-gray-100">
+              <CardTitle className="text-base font-semibold text-foreground">
                 Today&apos;s Study Plan
               </CardTitle>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <p className="text-sm text-muted-foreground">
                 Based on your weak areas
               </p>
             </div>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleRegenerate}
-            disabled={isGenerating}
-            className="h-8 gap-1.5 text-xs"
-          >
-            <RotateCcw
-              className={`h-3.5 w-3.5 ${isGenerating ? "animate-spin" : ""}`}
-            />
-            {isGenerating ? "Generating..." : "Regenerate"}
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsEditing(!isEditing)}
+              className={`h-8 gap-1.5 text-xs ${isEditing ? "bg-primary text-primary-foreground" : ""}`}
+            >
+              <Pencil className="h-3.5 w-3.5" />
+              {isEditing ? "Done" : "Edit"}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleRegenerate}
+              disabled={isGenerating}
+              className="h-8 gap-1.5 text-xs"
+            >
+              <RotateCcw
+                className={`h-3.5 w-3.5 ${isGenerating ? "animate-spin" : ""}`}
+              />
+              {isGenerating ? "Generating..." : "Regenerate"}
+            </Button>
+          </div>
         </div>
 
         {/* Progress Bar */}
         <div className="mt-4 space-y-2">
           <div className="flex items-center justify-between text-sm">
-            <span className="text-gray-500 dark:text-gray-400">Daily Progress</span>
-            <span className="font-medium text-gray-900 dark:text-gray-100">
+            <span className="text-muted-foreground">Daily Progress</span>
+            <span className="font-medium text-foreground">
               {studyPlan.completedMinutes} / {studyPlan.totalMinutes} min
             </span>
           </div>
@@ -277,21 +508,26 @@ export function StudyPlanTimeline({
               key={block.id}
               className={`rounded-lg border p-4 transition-all ${
                 isCompleted
-                  ? "border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20"
+                  ? "border-primary/30 bg-primary/5"
                   : isInProgress
-                    ? "border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20"
-                    : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/30 hover:border-gray-300 dark:hover:border-gray-600"
+                    ? "border-primary bg-primary/10"
+                    : "border-border bg-secondary/30 hover:border-border/80"
               }`}
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="flex items-start gap-3">
+                  {isEditing && (
+                    <div className="mt-2 cursor-grab text-muted-foreground">
+                      <GripVertical className="h-4 w-4" />
+                    </div>
+                  )}
                   <div
                     className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
                       isCompleted
-                        ? "bg-green-500 text-white"
+                        ? "bg-primary text-primary-foreground"
                         : isInProgress
-                          ? "bg-blue-500 text-white"
-                          : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400"
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-secondary text-muted-foreground"
                     }`}
                   >
                     {isCompleted ? (
@@ -304,7 +540,7 @@ export function StudyPlanTimeline({
                     <div className="flex items-center gap-2">
                       <span
                         className={`text-sm font-medium ${
-                          isCompleted ? "text-gray-400 dark:text-gray-500 line-through" : "text-gray-900 dark:text-gray-100"
+                          isCompleted ? "text-muted-foreground line-through" : "text-foreground"
                         }`}
                       >
                         {slotConfig.label}
@@ -313,10 +549,10 @@ export function StudyPlanTimeline({
                         variant="outline"
                         className={`text-[10px] font-normal ${
                           block.priority === "high"
-                            ? "border-red-300 dark:border-red-800 text-red-600 dark:text-red-400"
+                            ? "border-destructive/30 text-destructive"
                             : block.priority === "medium"
-                              ? "border-amber-300 dark:border-amber-800 text-amber-600 dark:text-amber-400"
-                              : "border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400"
+                              ? "border-warning/30 text-warning"
+                              : "border-border text-muted-foreground"
                         }`}
                       >
                         {block.priority}
@@ -324,17 +560,17 @@ export function StudyPlanTimeline({
                     </div>
 
                     <div className="mt-1.5 flex flex-wrap items-center gap-2">
-                      <Badge variant="secondary" className="gap-1 text-xs font-normal bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
+                      <Badge variant="secondary" className="gap-1 text-xs font-normal">
                         <TaskIcon className="h-3 w-3" />
                         {taskCfg.label}
                       </Badge>
-                      <span className="text-sm text-gray-900 dark:text-gray-100">{block.topic}</span>
-                      <span className="text-xs text-gray-500 dark:text-gray-400">
+                      <span className="text-sm text-foreground">{block.topic}</span>
+                      <span className="text-xs text-muted-foreground">
                         ({block.subject})
                       </span>
                     </div>
 
-                    <div className="mt-2 flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
+                    <div className="mt-2 flex items-center gap-3 text-xs text-muted-foreground">
                       <span className="flex items-center gap-1">
                         <Clock className="h-3 w-3" />
                         {block.duration} min
@@ -346,51 +582,106 @@ export function StudyPlanTimeline({
 
                 {/* Action buttons */}
                 <div className="flex shrink-0 gap-2">
-                  {!isCompleted && !isInProgress && (
-                    <Button
-                      size="sm"
-                      onClick={() => handleStartBlock(block)}
-                      className="h-8 gap-1 text-xs"
-                    >
-                      <Play className="h-3 w-3" />
-                      Start
-                    </Button>
-                  )}
-                  {isInProgress && (
+                  {isEditing ? (
                     <>
+                      <Dialog open={editingBlock?.id === block.id} onOpenChange={(open) => !open && setEditingBlock(null)}>
+                        <DialogTrigger asChild>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleEditBlock(block)}
+                            className="h-8 w-8 p-0"
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+                          </Button>
+                        </DialogTrigger>
+                        <BlockForm
+                          onSave={handleSaveEditBlock}
+                          onCancel={() => { setEditingBlock(null); resetForm(); }}
+                          title="Edit Study Block"
+                          description="Modify your study block details"
+                        />
+                      </Dialog>
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => handleBlockAction(block)}
-                        className="h-8 gap-1 text-xs"
+                        onClick={() => handleDeleteBlock(block.id)}
+                        className="h-8 w-8 p-0 text-destructive hover:bg-destructive hover:text-destructive-foreground"
                       >
-                        {taskCfg.label}
-                        <ChevronRight className="h-3 w-3" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        onClick={() => handleCompleteBlock(block.id)}
-                        className="h-8 gap-1 bg-green-500 text-xs text-white hover:bg-green-600"
-                      >
-                        <Check className="h-3 w-3" />
-                        Done
+                        <Trash2 className="h-3.5 w-3.5" />
                       </Button>
                     </>
-                  )}
-                  {isCompleted && (
-                    <Badge
-                      variant="outline"
-                      className="border-green-300 dark:border-green-800 text-green-600 dark:text-green-400"
-                    >
-                      <Check className="mr-1 h-3 w-3" />
-                      Completed
-                    </Badge>
+                  ) : (
+                    <>
+                      {!isCompleted && !isInProgress && (
+                        <Button
+                          size="sm"
+                          onClick={() => handleStartBlock(block)}
+                          className="h-8 gap-1 text-xs"
+                        >
+                          <Play className="h-3 w-3" />
+                          Start
+                        </Button>
+                      )}
+                      {isInProgress && (
+                        <>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleBlockAction(block)}
+                            className="h-8 gap-1 text-xs"
+                          >
+                            {taskCfg.label}
+                            <ChevronRight className="h-3 w-3" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            onClick={() => handleCompleteBlock(block.id)}
+                            className="h-8 gap-1 bg-primary text-xs text-primary-foreground hover:bg-primary/90"
+                          >
+                            <Check className="h-3 w-3" />
+                            Done
+                          </Button>
+                        </>
+                      )}
+                      {isCompleted && (
+                        <Badge
+                          variant="outline"
+                          className="border-primary/30 text-primary"
+                        >
+                          <Check className="mr-1 h-3 w-3" />
+                          Completed
+                        </Badge>
+                      )}
+                    </>
                   )}
                 </div>
               </div>
             </div>
           );
         })}
+
+        {/* Add new block button when editing */}
+        {isEditing && (
+          <Dialog open={isAddingBlock} onOpenChange={setIsAddingBlock}>
+            <DialogTrigger asChild>
+              <Button
+                variant="outline"
+                className="w-full border-dashed border-border"
+                onClick={() => { setIsAddingBlock(true); resetForm(); }}
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Add Study Block
+              </Button>
+            </DialogTrigger>
+            <BlockForm
+              onSave={handleAddBlock}
+              onCancel={() => { setIsAddingBlock(false); resetForm(); }}
+              title="Add Study Block"
+              description="Create a new study block for your plan"
+            />
+          </Dialog>
+        )}
       </CardContent>
     </Card>
   );
