@@ -24,29 +24,29 @@ export function StatsCards({ userProfile }: StatsCardsProps) {
       label: "Study Streak",
       value: `${userProfile.studyStreak} days`,
       icon: Flame,
-      iconColor: "text-warning",
-      borderColor: "border-l-warning",
+      iconColor: "text-amber-500 dark:text-amber-400",
+      borderColor: "border-l-amber-500 dark:border-l-amber-400",
     },
     {
       label: "Problems Solved",
       value: userProfile.totalProblems.toString(),
       icon: Trophy,
-      iconColor: "text-primary",
-      borderColor: "border-l-primary",
+      iconColor: "text-blue-600 dark:text-blue-400",
+      borderColor: "border-l-blue-600 dark:border-l-blue-400",
     },
     {
       label: "Overall Progress",
       value: `${avgProgress}%`,
       icon: TrendingUp,
-      iconColor: "text-chart-2",
-      borderColor: "border-l-chart-2",
+      iconColor: "text-purple-600 dark:text-purple-400",
+      borderColor: "border-l-purple-600 dark:border-l-purple-400",
     },
     {
       label: "Avg Accuracy",
       value: `${avgAccuracy}%`,
       icon: Target,
-      iconColor: "text-success",
-      borderColor: "border-l-success",
+      iconColor: "text-green-600 dark:text-green-400",
+      borderColor: "border-l-green-600 dark:border-l-green-400",
     },
   ];
 
@@ -55,13 +55,13 @@ export function StatsCards({ userProfile }: StatsCardsProps) {
       {stats.map((stat) => (
         <Card
           key={stat.label}
-          className={`border border-border bg-card shadow-sm transition-shadow hover:shadow-md ${stat.borderColor} border-l-2`}
+          className={`border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/50 shadow-sm transition-shadow hover:shadow-md ${stat.borderColor} border-l-2`}
         >
           <CardContent className="p-4">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">{stat.label}</p>
-                <p className="mt-1 text-2xl font-semibold text-foreground">
+                <p className="text-sm text-gray-500 dark:text-gray-400">{stat.label}</p>
+                <p className="mt-1 text-2xl font-semibold text-gray-900 dark:text-gray-100">
                   {stat.value}
                 </p>
               </div>

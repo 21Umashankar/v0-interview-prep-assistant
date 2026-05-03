@@ -221,18 +221,18 @@ export function StudyPlanTimeline({
   };
 
   return (
-    <Card className="border border-border bg-card shadow-sm">
+    <Card className="border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/50 shadow-sm">
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-primary/20 bg-primary/10">
-              <Sparkles className="h-4 w-4 text-primary" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/30">
+              <Sparkles className="h-4 w-4 text-blue-600 dark:text-blue-400" />
             </div>
             <div>
-              <CardTitle className="text-base font-semibold text-foreground">
+              <CardTitle className="text-base font-semibold text-gray-900 dark:text-gray-100">
                 Today&apos;s Study Plan
               </CardTitle>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 Based on your weak areas
               </p>
             </div>
@@ -254,8 +254,8 @@ export function StudyPlanTimeline({
         {/* Progress Bar */}
         <div className="mt-4 space-y-2">
           <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Daily Progress</span>
-            <span className="font-medium text-foreground">
+            <span className="text-gray-500 dark:text-gray-400">Daily Progress</span>
+            <span className="font-medium text-gray-900 dark:text-gray-100">
               {studyPlan.completedMinutes} / {studyPlan.totalMinutes} min
             </span>
           </div>
@@ -277,10 +277,10 @@ export function StudyPlanTimeline({
               key={block.id}
               className={`rounded-lg border p-4 transition-all ${
                 isCompleted
-                  ? "border-success/30 bg-success/5"
+                  ? "border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20"
                   : isInProgress
-                    ? "border-primary bg-primary/5"
-                    : "border-border bg-background hover:border-muted-foreground/30"
+                    ? "border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20"
+                    : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/30 hover:border-gray-300 dark:hover:border-gray-600"
               }`}
             >
               <div className="flex items-start justify-between gap-4">
@@ -288,10 +288,10 @@ export function StudyPlanTimeline({
                   <div
                     className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
                       isCompleted
-                        ? "bg-success text-success-foreground"
+                        ? "bg-green-500 text-white"
                         : isInProgress
-                          ? "bg-primary text-primary-foreground"
-                          : "bg-secondary text-muted-foreground"
+                          ? "bg-blue-500 text-white"
+                          : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400"
                     }`}
                   >
                     {isCompleted ? (
@@ -304,7 +304,7 @@ export function StudyPlanTimeline({
                     <div className="flex items-center gap-2">
                       <span
                         className={`text-sm font-medium ${
-                          isCompleted ? "text-muted-foreground line-through" : "text-foreground"
+                          isCompleted ? "text-gray-400 dark:text-gray-500 line-through" : "text-gray-900 dark:text-gray-100"
                         }`}
                       >
                         {slotConfig.label}
@@ -313,10 +313,10 @@ export function StudyPlanTimeline({
                         variant="outline"
                         className={`text-[10px] font-normal ${
                           block.priority === "high"
-                            ? "border-destructive/30 text-destructive"
+                            ? "border-red-300 dark:border-red-800 text-red-600 dark:text-red-400"
                             : block.priority === "medium"
-                              ? "border-warning/30 text-warning"
-                              : "border-muted-foreground/30 text-muted-foreground"
+                              ? "border-amber-300 dark:border-amber-800 text-amber-600 dark:text-amber-400"
+                              : "border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400"
                         }`}
                       >
                         {block.priority}
@@ -324,17 +324,17 @@ export function StudyPlanTimeline({
                     </div>
 
                     <div className="mt-1.5 flex flex-wrap items-center gap-2">
-                      <Badge variant="secondary" className="gap-1 text-xs font-normal">
+                      <Badge variant="secondary" className="gap-1 text-xs font-normal bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
                         <TaskIcon className="h-3 w-3" />
                         {taskCfg.label}
                       </Badge>
-                      <span className="text-sm text-foreground">{block.topic}</span>
-                      <span className="text-xs text-muted-foreground">
+                      <span className="text-sm text-gray-900 dark:text-gray-100">{block.topic}</span>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">
                         ({block.subject})
                       </span>
                     </div>
 
-                    <div className="mt-2 flex items-center gap-3 text-xs text-muted-foreground">
+                    <div className="mt-2 flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
                       <span className="flex items-center gap-1">
                         <Clock className="h-3 w-3" />
                         {block.duration} min
@@ -370,7 +370,7 @@ export function StudyPlanTimeline({
                       <Button
                         size="sm"
                         onClick={() => handleCompleteBlock(block.id)}
-                        className="h-8 gap-1 bg-success text-xs text-success-foreground hover:bg-success/90"
+                        className="h-8 gap-1 bg-green-500 text-xs text-white hover:bg-green-600"
                       >
                         <Check className="h-3 w-3" />
                         Done
@@ -380,7 +380,7 @@ export function StudyPlanTimeline({
                   {isCompleted && (
                     <Badge
                       variant="outline"
-                      className="border-success/30 text-success"
+                      className="border-green-300 dark:border-green-800 text-green-600 dark:text-green-400"
                     >
                       <Check className="mr-1 h-3 w-3" />
                       Completed

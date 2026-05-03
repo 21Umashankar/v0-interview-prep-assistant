@@ -33,16 +33,26 @@ interface PerformanceAnalyticsProps {
 const STATUS_CONFIG = {
   strong: {
     label: "Strong",
-    color: "text-success",
+    color: "text-green-600 dark:text-green-400",
   },
   moderate: {
     label: "Moderate",
-    color: "text-warning",
+    color: "text-amber-600 dark:text-amber-400",
   },
   weak: {
     label: "Needs Work",
-    color: "text-destructive",
+    color: "text-red-600 dark:text-red-400",
   },
+};
+
+// Use direct colors for charts that work in both themes
+const CHART_COLORS = {
+  primary: "#3b82f6",      // Blue
+  success: "#22c55e",      // Green
+  warning: "#f59e0b",      // Amber
+  destructive: "#ef4444",  // Red
+  secondary: "#6b7280",    // Gray
+  purple: "#a855f7",       // Purple
 };
 
 function CustomTooltip({
@@ -56,11 +66,11 @@ function CustomTooltip({
 }) {
   if (active && payload && payload.length) {
     return (
-      <div className="rounded-lg border border-border bg-card px-3 py-2 shadow-lg">
-        <p className="text-sm font-medium text-foreground">{label}</p>
+      <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 shadow-lg">
+        <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{label}</p>
         {payload.map((entry, index) => (
-          <p key={index} className="text-xs text-muted-foreground">
-            {entry.name}: <span className="font-medium text-foreground">{entry.value}%</span>
+          <p key={index} className="text-xs text-gray-600 dark:text-gray-400">
+            {entry.name}: <span className="font-medium text-gray-900 dark:text-gray-100">{entry.value}%</span>
           </p>
         ))}
       </div>
@@ -82,10 +92,10 @@ export function PerformanceAnalytics({ userProfile }: PerformanceAnalyticsProps)
       progress: subject.overallProgress,
       fill:
         subject.overallAccuracy >= 75
-          ? "hsl(var(--success))"
+          ? CHART_COLORS.success
           : subject.overallAccuracy >= 50
-            ? "hsl(var(--warning))"
-            : "hsl(var(--destructive))",
+            ? CHART_COLORS.warning
+            : CHART_COLORS.destructive,
     }));
   }, [userProfile.subjects]);
 
@@ -108,19 +118,19 @@ export function PerformanceAnalytics({ userProfile }: PerformanceAnalyticsProps)
         name: "Strong",
         value: strong,
         percentage: Math.round((strong / total) * 100),
-        fill: "hsl(var(--success))",
+        fill: CHART_COLORS.success,
       },
       {
         name: "Moderate",
         value: moderate,
         percentage: Math.round((moderate / total) * 100),
-        fill: "hsl(var(--warning))",
+        fill: CHART_COLORS.warning,
       },
       {
         name: "Weak",
         value: weak,
         percentage: Math.round((weak / total) * 100),
-        fill: "hsl(var(--destructive))",
+        fill: CHART_COLORS.destructive,
       },
     ];
   }, [userProfile.subjects]);
@@ -138,8 +148,8 @@ export function PerformanceAnalytics({ userProfile }: PerformanceAnalyticsProps)
     const avgAccuracy = Math.round(totalAccuracy / userProfile.subjects.length);
 
     return [
-      { name: "Progress", value: avgProgress, fill: "hsl(var(--primary))" },
-      { name: "Accuracy", value: avgAccuracy, fill: "hsl(var(--chart-2))" },
+      { name: "Progress", value: avgProgress, fill: CHART_COLORS.primary },
+      { name: "Accuracy", value: avgAccuracy, fill: CHART_COLORS.success },
     ];
   }, [userProfile.subjects]);
 
@@ -174,10 +184,10 @@ export function PerformanceAnalytics({ userProfile }: PerformanceAnalyticsProps)
       {/* Top Row - Key Metrics */}
       <div className="grid gap-4 md:grid-cols-3">
         {/* Overall Progress Radial */}
-        <Card className="border border-border bg-card shadow-sm">
+        <Card className="border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/50 shadow-sm">
           <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <Target className="h-4 w-4 text-primary" />
+            <CardTitle className="flex items-center gap-2 text-sm font-medium text-gray-600 dark:text-gray-400">
+              <Target className="h-4 w-4 text-blue-600 dark:text-blue-400" />
               Overall Progress
             </CardTitle>
           </CardHeader>
@@ -197,33 +207,34 @@ export function PerformanceAnalytics({ userProfile }: PerformanceAnalyticsProps)
                   <RadialBar
                     dataKey="value"
                     cornerRadius={5}
-                    background={{ fill: "hsl(var(--secondary))" }}
+                    background={{ fill: "#e5e7eb" }}
+                    className="dark:[&_.recharts-radial-bar-background-sector]:fill-gray-700"
                   />
                 </RadialBarChart>
               </ResponsiveContainer>
             </div>
             <div className="flex justify-center gap-6 text-center">
               <div>
-                <p className="text-xl font-semibold text-primary">
+                <p className="text-xl font-semibold text-blue-600 dark:text-blue-400">
                   {overallData[0].value}%
                 </p>
-                <p className="text-xs text-muted-foreground">Progress</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Progress</p>
               </div>
               <div>
-                <p className="text-xl font-semibold text-chart-2">
+                <p className="text-xl font-semibold text-green-600 dark:text-green-400">
                   {overallData[1].value}%
                 </p>
-                <p className="text-xs text-muted-foreground">Accuracy</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Accuracy</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
         {/* Status Distribution Pie */}
-        <Card className="border border-border bg-card shadow-sm">
+        <Card className="border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/50 shadow-sm">
           <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <PieChartIcon className="h-4 w-4 text-chart-2" />
+            <CardTitle className="flex items-center gap-2 text-sm font-medium text-gray-600 dark:text-gray-400">
+              <PieChartIcon className="h-4 w-4 text-green-600 dark:text-green-400" />
               Topic Status
             </CardTitle>
           </CardHeader>
@@ -256,7 +267,7 @@ export function PerformanceAnalytics({ userProfile }: PerformanceAnalyticsProps)
                     className="h-2 w-2 rounded-full"
                     style={{ backgroundColor: item.fill }}
                   />
-                  <span className="text-xs text-muted-foreground">
+                  <span className="text-xs text-gray-500 dark:text-gray-400">
                     {item.name} ({item.value})
                   </span>
                 </div>
@@ -266,35 +277,35 @@ export function PerformanceAnalytics({ userProfile }: PerformanceAnalyticsProps)
         </Card>
 
         {/* Quick Stats */}
-        <Card className="border border-border bg-card shadow-sm">
+        <Card className="border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/50 shadow-sm">
           <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <BarChart3 className="h-4 w-4 text-warning" />
+            <CardTitle className="flex items-center gap-2 text-sm font-medium text-gray-600 dark:text-gray-400">
+              <BarChart3 className="h-4 w-4 text-amber-600 dark:text-amber-400" />
               Quick Insights
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <div className="flex items-center justify-between rounded-lg border border-destructive/20 bg-destructive/5 p-3">
+            <div className="flex items-center justify-between rounded-lg border border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-950/30 p-3">
               <div className="flex items-center gap-2">
-                <TrendingDown className="h-4 w-4 text-destructive" />
-                <span className="text-sm text-foreground">Weak Topics</span>
+                <TrendingDown className="h-4 w-4 text-red-600 dark:text-red-400" />
+                <span className="text-sm text-gray-900 dark:text-gray-100">Weak Topics</span>
               </div>
-              <Badge variant="outline" className="border-destructive/30 text-destructive">
+              <Badge variant="outline" className="border-red-300 dark:border-red-800 text-red-600 dark:text-red-400">
                 {weakTopics.length}
               </Badge>
             </div>
-            <div className="flex items-center justify-between rounded-lg border border-success/20 bg-success/5 p-3">
+            <div className="flex items-center justify-between rounded-lg border border-green-200 dark:border-green-900/50 bg-green-50 dark:bg-green-950/30 p-3">
               <div className="flex items-center gap-2">
-                <TrendingUp className="h-4 w-4 text-success" />
-                <span className="text-sm text-foreground">Strong Topics</span>
+                <TrendingUp className="h-4 w-4 text-green-600 dark:text-green-400" />
+                <span className="text-sm text-gray-900 dark:text-gray-100">Strong Topics</span>
               </div>
-              <Badge variant="outline" className="border-success/30 text-success">
+              <Badge variant="outline" className="border-green-300 dark:border-green-800 text-green-600 dark:text-green-400">
                 {strongTopics.length}
               </Badge>
             </div>
-            <div className="flex items-center justify-between rounded-lg border border-border bg-secondary/50 p-3">
-              <span className="text-sm text-foreground">Study Streak</span>
-              <span className="font-semibold text-warning">
+            <div className="flex items-center justify-between rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 p-3">
+              <span className="text-sm text-gray-900 dark:text-gray-100">Study Streak</span>
+              <span className="font-semibold text-amber-600 dark:text-amber-400">
                 {userProfile.studyStreak} days
               </span>
             </div>
@@ -303,11 +314,11 @@ export function PerformanceAnalytics({ userProfile }: PerformanceAnalyticsProps)
       </div>
 
       {/* Bottom Row - Bar Chart */}
-      <Card className="border border-border bg-card shadow-sm">
+      <Card className="border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/50 shadow-sm">
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2 text-foreground">
-              <BarChart3 className="h-5 w-5 text-primary" />
+            <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-gray-100">
+              <BarChart3 className="h-5 w-5 text-blue-600 dark:text-blue-400" />
               Subject-wise Performance
             </CardTitle>
             <div className="flex gap-3">
@@ -318,13 +329,13 @@ export function PerformanceAnalytics({ userProfile }: PerformanceAnalyticsProps)
                     style={{
                       backgroundColor:
                         key === "strong"
-                          ? "hsl(var(--success))"
+                          ? CHART_COLORS.success
                           : key === "moderate"
-                            ? "hsl(var(--warning))"
-                            : "hsl(var(--destructive))",
+                            ? CHART_COLORS.warning
+                            : CHART_COLORS.destructive,
                     }}
                   />
-                  <span className="text-xs text-muted-foreground">{config.label}</span>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">{config.label}</span>
                 </div>
               ))}
             </div>
@@ -339,23 +350,25 @@ export function PerformanceAnalytics({ userProfile }: PerformanceAnalyticsProps)
               >
                 <CartesianGrid
                   strokeDasharray="3 3"
-                  stroke="hsl(var(--border))"
+                  className="stroke-gray-200 dark:stroke-gray-700"
                   vertical={false}
                 />
                 <XAxis
                   dataKey="name"
-                  tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
-                  axisLine={{ stroke: "hsl(var(--border))" }}
+                  tick={{ fontSize: 12 }}
+                  className="text-gray-600 dark:text-gray-400 [&_.recharts-cartesian-axis-tick-value]:fill-gray-600 dark:[&_.recharts-cartesian-axis-tick-value]:fill-gray-400"
+                  axisLine={false}
                   tickLine={false}
                 />
                 <YAxis
                   domain={[0, 100]}
-                  tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
+                  tick={{ fontSize: 12 }}
+                  className="[&_.recharts-cartesian-axis-tick-value]:fill-gray-600 dark:[&_.recharts-cartesian-axis-tick-value]:fill-gray-400"
                   axisLine={false}
                   tickLine={false}
                   tickFormatter={(value) => `${value}%`}
                 />
-                <Tooltip content={<CustomTooltip />} cursor={{ fill: "hsl(var(--secondary))" }} />
+                <Tooltip content={<CustomTooltip />} cursor={{ fill: "rgba(107, 114, 128, 0.1)" }} />
                 <Bar dataKey="accuracy" name="Accuracy" radius={[4, 4, 0, 0]} maxBarSize={48}>
                   {accuracyData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.fill} />
@@ -370,16 +383,16 @@ export function PerformanceAnalytics({ userProfile }: PerformanceAnalyticsProps)
       {/* Topic Details Grid */}
       <div className="grid gap-4 md:grid-cols-2">
         {/* Weak Topics */}
-        <Card className="border border-border bg-card shadow-sm">
+        <Card className="border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/50 shadow-sm">
           <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-foreground">
-              <TrendingDown className="h-4 w-4 text-destructive" />
+            <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-gray-100">
+              <TrendingDown className="h-4 w-4 text-red-600 dark:text-red-400" />
               Areas Needing Attention
             </CardTitle>
           </CardHeader>
           <CardContent>
             {weakTopics.length === 0 ? (
-              <p className="text-center text-sm text-muted-foreground">
+              <p className="text-center text-sm text-gray-500 dark:text-gray-400">
                 Great job! No weak areas detected.
               </p>
             ) : (
@@ -387,13 +400,13 @@ export function PerformanceAnalytics({ userProfile }: PerformanceAnalyticsProps)
                 {weakTopics.slice(0, 5).map((topic) => (
                   <div
                     key={`${topic.subject}-${topic.topic}`}
-                    className="flex items-center justify-between rounded-lg border border-border p-3"
+                    className="flex items-center justify-between rounded-lg border border-gray-200 dark:border-gray-700 p-3"
                   >
                     <div>
-                      <p className="text-sm font-medium text-foreground">{topic.topic}</p>
-                      <p className="text-xs text-muted-foreground">{topic.subject}</p>
+                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{topic.topic}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">{topic.subject}</p>
                     </div>
-                    <Badge variant="outline" className="border-destructive/30 text-destructive">
+                    <Badge variant="outline" className="border-red-300 dark:border-red-800 text-red-600 dark:text-red-400">
                       {topic.accuracy}%
                     </Badge>
                   </div>
@@ -404,16 +417,16 @@ export function PerformanceAnalytics({ userProfile }: PerformanceAnalyticsProps)
         </Card>
 
         {/* Strong Topics */}
-        <Card className="border border-border bg-card shadow-sm">
+        <Card className="border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/50 shadow-sm">
           <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-foreground">
-              <TrendingUp className="h-4 w-4 text-success" />
+            <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-gray-100">
+              <TrendingUp className="h-4 w-4 text-green-600 dark:text-green-400" />
               Strong Areas
             </CardTitle>
           </CardHeader>
           <CardContent>
             {strongTopics.length === 0 ? (
-              <p className="text-center text-sm text-muted-foreground">
+              <p className="text-center text-sm text-gray-500 dark:text-gray-400">
                 Keep practicing to build strong areas!
               </p>
             ) : (
@@ -421,13 +434,13 @@ export function PerformanceAnalytics({ userProfile }: PerformanceAnalyticsProps)
                 {strongTopics.slice(0, 5).map((topic) => (
                   <div
                     key={`${topic.subject}-${topic.topic}`}
-                    className="flex items-center justify-between rounded-lg border border-border p-3"
+                    className="flex items-center justify-between rounded-lg border border-gray-200 dark:border-gray-700 p-3"
                   >
                     <div>
-                      <p className="text-sm font-medium text-foreground">{topic.topic}</p>
-                      <p className="text-xs text-muted-foreground">{topic.subject}</p>
+                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{topic.topic}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">{topic.subject}</p>
                     </div>
-                    <Badge variant="outline" className="border-success/30 text-success">
+                    <Badge variant="outline" className="border-green-300 dark:border-green-800 text-green-600 dark:text-green-400">
                       {topic.accuracy}%
                     </Badge>
                   </div>
