@@ -48,16 +48,15 @@ It acts as a **virtual interview coach**, allowing users to:
 
 ## 📂 Project Structure
 
-
+```
 v0-interview-prep-assistant/
-│── app/ # App router (Next.js)
-│── components/ # Reusable UI components
-│── lib/ # Utility functions / API logic
-│── public/ # Static assets
-│── styles/ # Global styles
+│── app/               # App router (Next.js)
+│── components/        # Reusable UI components
+│── lib/               # Utility functions / API logic
+│── public/            # Static assets
+│── styles/            # Global styles
 │── package.json
 │── README.md
-
 
 ---
 
