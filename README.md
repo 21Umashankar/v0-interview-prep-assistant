@@ -3,7 +3,7 @@
 An AI-powered interview preparation tool that helps users practice technical and behavioral interviews with real-time feedback and intelligent question generation.
 
 🔗 **Repository:** https://github.com/21Umashankar/v0-interview-prep-assistant    
-   **Deploy Link** https://v0-interview-prep-assistant-irxb-73nwtgx4g.vercel.app/
+**Deploy Link:** https://v0-interview-prep-assistant-irxb-73nwtgx4g.vercel.app/
 
 
 ---
